@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate= useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -14,7 +16,10 @@ const Login = () => {
     e.preventDefault();
     console.log("Login Data:", formData);
     // Add your login logic here (e.g., API call)
+    navigate('/student-details');
   };
+
+ 
 
   return (
     <form onSubmit={handleSubmit}>
@@ -28,7 +33,7 @@ const Login = () => {
       <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
       <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
       <a href="#">Forgot your password?</a>
-      <button type="submit">Sign In</button>
+      <button  type="submit">Sign In</button>
     </form>
   );
 };

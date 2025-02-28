@@ -6,6 +6,7 @@ import AuthContainer from "./pages/loginPage/AuthContainer";
 import Login from "./pages/loginPage/Login";
 import Signup from "./pages/loginPage/Register";
 import Navbar from "./layouts/Navbar";
+import StudentDetails from "./pages/StudentDetails";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/authContainer" element={<AuthContainer />} />
+        <Route path="/student-details" element={<StudentDetails />} />
       </Routes>
     </Router>
   );

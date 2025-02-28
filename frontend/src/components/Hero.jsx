@@ -1,7 +1,12 @@
 import React from "react";
 import './Hero.css'
 import img1 from "../assets/hero-img.png"
+import { useNavigate } from "react-router-dom";
 function Hero() {
+  const navigate= useNavigate();
+  function handleJoin(){
+    navigate('/authContainer');
+  }
   return (
     <div className="hero-section">
       <div className="hero-left">
@@ -12,7 +17,7 @@ function Hero() {
           <p className="hero-para">A smart, efficient platform connecting students with career opportunities, internships, and industry insights.</p>
         </div>
         <div className="hero-buttons">
-            <button className="join-now">
+            <button onClick={handleJoin} className="join-now">
                 Join Now
             </button>
             <button className="post-job">

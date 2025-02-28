@@ -1,0 +1,23 @@
+.features{
+    display: flex;
+    flex-direction: column;
+    max-width:100vw ;
+
+}
+
+.feature-heading{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: .7rem;
+    margin-bottom: 2rem;
+}
+.f-heading{
+    font-size: 40px;
+}
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3,1fr); 
+    margin-bottom: 2rem;
+  }

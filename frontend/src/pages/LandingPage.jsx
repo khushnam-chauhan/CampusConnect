@@ -1,0 +1,24 @@
+import React from 'react'
+
+import Hero from "../components/Hero";
+import Features from "../components/Features";
+import Footer from "../layouts/Footer";
+import Navbar from "../layouts/Navbar";
+import HiringSection from '../components/HiringSection';
+import FAQ from '../components/FAQ';
+import Placed from '../components/Placed';
+
+const LandingPage = () => {
+  return (
+    <>
+      <Hero />
+      <Features />
+      <HiringSection/>
+      <FAQ/>
+      <Placed/>
+      <Footer />
+    </>
+  );
+};
+
+export default LandingPage;

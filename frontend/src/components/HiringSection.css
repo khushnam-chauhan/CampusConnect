@@ -1,0 +1,9 @@
+.hiring-section{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.hiring-heading{
+    font-size: 40px;
+}

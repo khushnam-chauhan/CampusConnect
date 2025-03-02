@@ -11,6 +11,7 @@ import Placed from '../components/Placed';
 const LandingPage = () => {
   return (
     <>
+    <Navbar />
       <Hero />
       <Features />
       <HiringSection/>

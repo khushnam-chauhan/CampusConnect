@@ -7,17 +7,19 @@ import Login from "./pages/loginPage/Login";
 import Signup from "./pages/loginPage/Register";
 import Navbar from "./layouts/Navbar";
 import StudentDetails from "./pages/StudentDetails";
+import CampusConnectDashboard from "./pages/dashboard/Dashboard";
 
 function App() {
   return (
     <Router> 
-    <Navbar/>
+    
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/authContainer" element={<AuthContainer />} />
         <Route path="/student-details" element={<StudentDetails />} />
+        <Route path="/dashboard" element={<CampusConnectDashboard />} />
       </Routes>
     </Router>
   );

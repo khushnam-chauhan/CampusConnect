@@ -3,6 +3,7 @@ import axios from "axios";
 import "./studentDetails.css";
 import LoadingScreen from "../components/LoadingScreen";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../layouts/Navbar";
 
 const StudentDetails = () => {
   const navigate = useNavigate();
@@ -210,7 +211,9 @@ const StudentDetails = () => {
   };
 
   return (
-    <div className="student-form-container">
+      <>
+      <Navbar/>
+      <div className="student-form-container">
       {loading && <LoadingScreen />}
       <h2 className="form-title">Complete Your Details</h2>
       <form className="student-form" onSubmit={handleSubmit}>
@@ -224,6 +227,7 @@ const StudentDetails = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
+                readOnly
               />
             </div>
 
@@ -235,6 +239,7 @@ const StudentDetails = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
+                readOnly
               />
             </div>
 
@@ -246,6 +251,7 @@ const StudentDetails = () => {
                 value={formData.rollNo}
                 onChange={handleChange}
                 required
+                readOnly
               />
             </div>
 
@@ -662,6 +668,8 @@ const StudentDetails = () => {
         </button>
       </form>
     </div>
+      </>
+
   );
 };
 

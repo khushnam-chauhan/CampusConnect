@@ -1,25 +1,50 @@
 import React, { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
-  const navigate= useNavigate();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: "" });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", formData);
-    // Add your login logic here (e.g., API call)
-    navigate('/student-details');
-  };
+    try {
+      const res = await axios.post("http://localhost:3000/api/auth/login", formData, {
+        headers: { "Content-Type": "application/json" },
+      });
 
- 
+      if (res && res.data) {
+        localStorage.setItem("token", res.data.token);
+
+        // Fetch user profile after login
+        const profileRes = await axios.get("http://localhost:3000/api/profile/me", {
+          headers: { Authorization: `Bearer ${res.data.token}` },
+        });
+
+        if (profileRes && profileRes.data) {
+          const user = profileRes.data;
+
+          if (user.role === "student") {
+            // Check if student details are complete
+            if (user.name && user.email && user.phone && user.resume) {
+              navigate("/dashboard"); // Redirect to dashboard if details are complete
+            } else {
+              navigate("/student-details"); // Redirect to form if details are missing
+            }
+          } else {
+            navigate("/dashboard"); // Redirect non-students to dashboard
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Login Error:", error.response || error.message);
+      alert(error.response?.data?.message || "Login failed. Please try again.");
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -33,7 +58,7 @@ const Login = () => {
       <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
       <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
       <a href="#">Forgot your password?</a>
-      <button  type="submit">Sign In</button>
+      <button type="submit">Sign In</button>
     </form>
   );
 };

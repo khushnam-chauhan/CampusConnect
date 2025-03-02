@@ -1,32 +1,37 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 const Signup = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ fullName: "", email: "", password: "", rollNo: "" });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Signup Data:", formData);
-    // Add your signup logic here (e.g., API call)
+    try {
+      const res = await axios.post("http://localhost:3000/api/auth/register", formData, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (res && res.data) {
+        localStorage.setItem("token", res.data.token);
+        alert("Signup successful!");
+        window.location.href = "/authContainer";
+
+      } else {
+        alert("Unexpected response from server.");
+      }
+    } catch (error) {
+      console.error("Signup Error:", error.response || error.message);
+      alert(error.response?.data?.message || "Signup failed. Try again.");
+    }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <h1>Create Account</h1>
-      <div className="social-container">
-        <a href="#" className="social"><i className="fab fa-google"></i></a>
-        <a href="#" className="social"><i className="fab fa-facebook-f"></i></a>
-        <a href="#" className="social"><i className="fab fa-github"></i></a>
-      </div>
-      <span>or use your email for registration</span>
-      <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
+      <input type="text" name="fullName" placeholder="Full Name" value={formData.fullName} onChange={handleChange} required />
+      <input type="text" name="rollNo" placeholder="Roll No" value={formData.rollNo} onChange={handleChange} required />
       <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
       <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
       <button type="submit">Sign Up</button>

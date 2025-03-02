@@ -25,7 +25,7 @@
 .nav-btn{
     border: none;
     background-color: white;
-    font-weight: bold;
+    font-weight: 400;
     cursor: pointer;
 }
 .nav-btn:hover{

@@ -2,29 +2,35 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    fullName: { type: String, required: true }, 
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ["student", "admin"], default: "student" },
 
     // Student Profile Fields
-    rollNo: { type: String, unique: true },
+    rollNo: { type: String, unique: true, sparse: true },
+    mobileNo: { type: String }, // Make sure this field exists in schema
     whatsappNo: { type: String },
+    mailId: { type: String },
     fatherName: { type: String },
     fatherNumber: { type: String },
+    school: { type: String },
+    yearOfPassingKRMU: { type: String },
+    courseAggregate: { type: String },
     education: {
-      tenth: { percentage: Number, passingYear: Number },
-      twelfth: { percentage: Number, passingYear: Number },
-      graduation: { degree: String, percentageOrCGPA: Number, passingYear: Number },
-      masters: { degree: String, percentageOrCGPA: Number, passingYear: Number },
+      tenth: { percentage: String, passingYear: String },
+      twelfth: { percentage: String, passingYear: String },
+      graduation: { degree: String, percentageOrCGPA: String, passingYear: String },
+      masters: { degree: String, percentageOrCGPA: String, passingYear: String },
     },
-    existingBacklogs: { type: Number, default: 0 },
-    areaOfInterest: [{ type: String }],
+    existingBacklogs: { type: String },
+    areaOfInterest: { type: String }, 
     certifications: [{ name: String, image: String }],
-    readyToRelocate: { type: Boolean, default: true },
+    readyToRelocate: { type: Boolean, default: false },
     experience: {
       hasExperience: { type: Boolean, default: false },
       organizationName: { type: String },
+      duration: { type: String },
       details: { type: String },
     },
     resume: { type: String }, 

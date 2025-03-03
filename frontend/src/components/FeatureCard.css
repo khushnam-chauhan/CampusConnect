@@ -1,9 +1,9 @@
-.feature-card{
+.feature-card1{
     display: flex;
     flex-direction: column;
     gap: 3rem;
-    height: 180px;
-    width: 200px;
+    height: 240px;
+    width: 250px;
     border-radius: 15px;
     padding: 2rem;
     margin-left: 6rem;
@@ -11,7 +11,7 @@
     background-color: rgb(211, 211, 216);
     transition: .3s ease-in-out;
 }
-.feature-card:hover{
+.feature-card1:hover{
     transform: scale(1.1);
     background-color: rgb(170, 170, 173);;
 }

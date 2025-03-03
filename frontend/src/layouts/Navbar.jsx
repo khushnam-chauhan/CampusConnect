@@ -29,11 +29,11 @@ function Navbar() {
         )}
         {isLoggedIn && ( 
           <Link to="/dashboard">
-            <button className="nav-btn">Dashboard</button>
+            <button className="nav-btn dashbtn">Dashboard</button>
           </Link>
         )}
         {isLoggedIn ? (
-          <button className="nav-btn logout-btn" onClick={handleLogout}>Logout</button>
+          <button className="nav-btn logout-btn1" onClick={handleLogout}>Logout</button>
         ) : (
           <Link to="/authContainer">
             <button className="nav-btn">Sign In</button>

@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema(
 
     // Student Profile Fields
     rollNo: { type: String, unique: true, sparse: true },
-    mobileNo: { type: String }, // Make sure this field exists in schema
+    mobileNo: { type: String }, 
     whatsappNo: { type: String },
     mailId: { type: String },
     fatherName: { type: String },
@@ -25,6 +25,7 @@ const UserSchema = new mongoose.Schema(
     },
     existingBacklogs: { type: String },
     areaOfInterest: { type: String }, 
+    skills: [{ name: String }], // Added skills field as an array of strings
     certifications: [{ name: String, image: String }],
     readyToRelocate: { type: Boolean, default: false },
     experience: {

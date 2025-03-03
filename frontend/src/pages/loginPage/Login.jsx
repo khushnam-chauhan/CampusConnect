@@ -27,13 +27,17 @@ const Login = () => {
 
         if (profileRes && profileRes.data) {
           const user = profileRes.data;
+          console.log("User Data:", user); // Debugging step
 
           if (user.role === "student") {
-            // Check if student details are complete
-            if (user.name && user.email && user.phone && user.resume) {
+            // Ensure all required fields are filled
+            const requiredFields = ["name", "email", "phone", "resume", "profilePhoto", "course", "yearOfPassing"];
+            const isComplete = requiredFields.every(field => user[field]);
+
+            if (isComplete) {
               navigate("/dashboard"); // Redirect to dashboard if details are complete
             } else {
-              navigate("/student-details"); // Redirect to form if details are missing
+              navigate("/student-details"); // Redirect to complete profile
             }
           } else {
             navigate("/dashboard"); // Redirect non-students to dashboard

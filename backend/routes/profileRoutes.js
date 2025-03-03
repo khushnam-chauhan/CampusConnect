@@ -5,12 +5,13 @@ const {
   completeProfile, 
   getProfile,
   uploadProfilePhoto,
-  uploadResume
+  uploadResume,
+  updateProfile
 } = require("../controllers/profileController");
 
 const router = express.Router();
 
-// Multer Configuration for File Uploads
+// Consolidated Multer Configuration for File Uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
@@ -18,7 +19,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Define file fields for the complete profile endpoint
+// Define file fields for profile endpoints
 const fileFields = [
   { name: "profilePhoto", maxCount: 1 },
   { name: "resume", maxCount: 1 }
@@ -30,8 +31,9 @@ for (let i = 0; i < 10; i++) {
 }
 
 // Routes
-router.put("/complete", protect, upload.fields(fileFields), completeProfile);
 router.get("/me", protect, getProfile);
+router.put("/complete", protect, upload.fields(fileFields), completeProfile);
+router.post("/update", protect, upload.fields(fileFields), updateProfile);
 router.post("/upload-photo", protect, upload.single("profilePhoto"), uploadProfilePhoto);
 router.post("/upload-resume", protect, upload.single("resume"), uploadResume);
 

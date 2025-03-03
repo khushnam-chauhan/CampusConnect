@@ -1,12 +1,11 @@
 require("dotenv").config();
 const express = require("express");
+const path= require('path');
 const cors = require("cors");
 const connectDb = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const profileRoutes = require("./routes/profileRoutes");
-const uploadRoutes = require("./routes/uploadRoutes");
-const userRoutes = require("./routes/userRoutes");
 
 const app = express();
 
@@ -16,14 +15,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static file serving
-app.use("/uploads", express.static("uploads"));
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/users", userRoutes);
 
 // Connect DB
 connectDb();

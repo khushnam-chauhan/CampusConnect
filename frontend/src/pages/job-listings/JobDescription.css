@@ -1,0 +1,344 @@
+/* Job Description Page */
+.job-description-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  .job-description-container {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 25px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: var(--dark-gray);
+    cursor: pointer;
+    transition: var(--transition);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  
+  .close-btn:hover {
+    background-color: var(--light-gray);
+    color: var(--text-color);
+  }
+  
+  /* Job Details Content */
+  .job-header {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--medium-gray);
+  }
+  
+  .job-header h1 {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    padding-right: 30px;
+  }
+  
+  .company-details {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+  }
+  
+  .company-name {
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  
+  .job-location {
+    color: var(--dark-gray);
+  }
+  
+  .job-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .job-type-tag, .job-category-tag, .deadline-tag {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .job-type-tag {
+    background-color: var(--primary-color);
+    color: var(--white);
+  }
+  
+  .job-category-tag {
+    background-color: var(--secondary-color);
+    color: var(--white);
+  }
+  
+  .deadline-tag {
+    background-color: var(--accent-color);
+    color: var(--white);
+  }
+  
+  .deadline-tag.expired {
+    background-color: #e74c3c;
+  }
+  
+  /* Job Summary */
+  .job-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+  }
+  
+  @media (max-width: 600px) {
+    .job-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .summary-item h3 {
+    font-size: 0.85rem;
+    color: var(--dark-gray);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  
+  .summary-item p {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  /* Job Sections */
+  .job-section {
+    margin-bottom: 25px;
+  }
+  
+  .job-section h2 {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    margin-bottom: 12px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--medium-gray);
+  }
+  
+  .section-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-color);
+  }
+  
+  .skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .detail-skill {
+    font-size: 0.85rem;
+    background-color: var(--light-gray);
+    padding: 5px 12px;
+    border-radius: 4px;
+  }
+  
+  /* Job Footer */
+  .job-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 20px;
+    border-top: 1px solid var(--medium-gray);
+    margin-top: 20px;
+  }
+  
+  .apply-button, .close-details-button {
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+  }
+  
+  .apply-button {
+    background-color: var(--primary-color);
+    color: var(--white);
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  .apply-button:hover {
+    background-color: #2980b9;
+  }
+  
+  .close-details-button {
+    background-color: var(--light-gray);
+    color: var(--text-color);
+  }
+  
+  .close-details-button:hover {
+    background-color: var(--medium-gray);
+  }
+  
+  /* Application Form */
+  .application-form-container {
+    padding: 10px 0;
+  }
+  
+  .application-form-container h2 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+  }
+  
+  .form-subtitle {
+    color: var(--dark-gray);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+  }
+  
+  .application-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .form-group label {
+    font-size: 0.9rem;
+    color: var(--text-color);
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    padding: 10px;
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: 2px solid var(--primary-color);
+    border-color: transparent;
+  }
+  
+  .form-group input.error,
+  .form-group textarea.error,
+  .form-group .file-input.error {
+    border-color: #e74c3c;
+  }
+  
+  .error-message {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 2px;
+  }
+  
+  .file-input {
+    padding: 8px;
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .primary-btn, .secondary-btn {
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+  }
+  
+  .primary-btn {
+    background-color: var(--primary-color);
+    color: var(--white);
+  }
+  
+  .primary-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  .secondary-btn {
+    background-color: var(--light-gray);
+    color: var(--text-color);
+  }
+  
+  .secondary-btn:hover {
+    background-color: var(--medium-gray);
+  }
+  
+  /* Application Success */
+  .application-success {
+    text-align: center;
+    padding: 30px 20px;
+  }
+  
+  .success-icon {
+    width: 70px;
+    height: 70px;
+    background-color: var(--secondary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 20px;
+  }
+  
+  .application-success h2 {
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+  }
+  
+  .application-success p {
+    margin-bottom: 10px;
+    color: var(--text-color);
+  }
+  
+  .application-success button {
+    margin-top: 20px;
+  }

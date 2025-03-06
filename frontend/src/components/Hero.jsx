@@ -7,6 +7,9 @@ function Hero() {
   function handleJoin(){
     navigate('/authContainer');
   }
+  function handlePost(){
+    navigate('/post-job');
+  }
   return (
     <div className="hero-section">
       <div className="hero-left">
@@ -20,7 +23,7 @@ function Hero() {
             <button onClick={handleJoin} className="join-now">
                 Join Now
             </button>
-            <button className="post-job">
+            <button className="post-job" onClick={handlePost}>
                 Post a Job
             </button>
         </div>

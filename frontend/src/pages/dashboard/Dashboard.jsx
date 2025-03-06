@@ -18,7 +18,7 @@ export default function CampusConnectDashboard() {
           <h2 className="welcome-heading">Welcome back</h2>
           <p className="welcome-subtext">Here's what's happening with your academic journey</p>
         </div>
-        <Link to="/internships" className="apply-button">
+        <Link to="/internships" className="apply-button1">
           Apply for Internship
         </Link>
       </div>

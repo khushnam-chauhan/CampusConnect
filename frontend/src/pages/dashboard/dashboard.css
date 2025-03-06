@@ -74,7 +74,7 @@
     color: #666;
   }
   
-  .apply-button {
+  .apply-button1 {
     display: inline-block;
     margin-top: 16px;
     padding: 12px 24px;
@@ -86,7 +86,7 @@
     align-self: flex-start;
   }
   
-  .apply-button:hover {
+  .apply-button1:hover {
     background-color: #1e40af; /* Darker blue */
   }
  
@@ -216,7 +216,7 @@
       align-items: center;
     }
   
-    .apply-button {
+    .apply-button1 {
       margin-top: 0;
     }
   

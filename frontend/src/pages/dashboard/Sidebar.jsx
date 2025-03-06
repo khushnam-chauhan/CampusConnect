@@ -29,7 +29,7 @@ const Sidebar = ({ isOpen, onItemClick }) => {
     { name: "Notifications", path: "/notifications" },
     { name: "Profile", path: "/profile" },
     ...(user?.role === "admin"
-      ? [{ name: "Admin Dashboard", path: "/admin/dashboard" }]
+      ? [{ name: "Admin Dashboard", path: "/admin-mgmnt" }]
       : []),
   ];
 

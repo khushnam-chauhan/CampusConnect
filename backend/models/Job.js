@@ -9,20 +9,21 @@ const JobSchema = new mongoose.Schema(
     email: { type: String, required: true },
     position: { type: String, required: true },
     startingDate: { type: Date, required: true },
-    applicationDeadline: { type: Date, required: true }, // Added application deadline
+    applicationDeadline: { type: Date, required: true },
     salaryRange: { type: String },
     openings: { type: Number, default: 1 },
     location: { type: String, required: true },
     workType: { type: String, enum: ["Full-time", "Part-time", "Internship"], required: true },
-    category: { type: String, required: true }, // Added job category
+    category: { type: String, required: true }, 
     eligibilityCriteria: { type: String, required: true },
     jobDescription: { type: String, required: true },
     skills: [{ type: String, required: true }],
-    socialLinks: [{ type: String }],
+    socialLinks: [{ type: String, required:true }],
     messageForCDC: { type: String },
-    attachments: [{ type: String }], // File URLs if any
+    attachments: [{ type: String }], 
+    externalApplicationLink: { type: String }, 
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
-    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }, // Null for external users
+    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }, 
   },
   { timestamps: true }
 );

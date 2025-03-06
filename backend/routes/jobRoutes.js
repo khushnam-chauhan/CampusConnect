@@ -1,19 +1,29 @@
 const express = require("express");
-const { protect, admin } = require("../middleware/authMiddleware");
-const {
-  postJob,
-  submitJobRequest,
-  reviewJobRequest,
-  getApprovedJobs,
-  getPendingJobs,
-} = require("../controllers/jobController");
+const { 
+  createJob, 
+  getPublicJobs, 
+  getAllJobsAdmin, 
+  getJobById, 
+  updateJob, 
+  deleteJob, 
+  updateJobStatus, 
+  getUserJobs 
+} = require("../controllers/jobController"); // Ensure correct path
 
 const router = express.Router();
 
-router.post("/admin/post", protect, admin, postJob); // Only admin can post
-router.post("/submit", submitJobRequest); // External users can submit
-router.put("/admin/review", protect, admin, reviewJobRequest); //  approves/rejects
-router.get("/approved", getApprovedJobs); // Get approved jobs
-router.get("/admin/pending", protect, admin, getPendingJobs); //  pending jobs
+// Public Routes
+router.get("/", getPublicJobs); 
+router.get("/:id", getJobById); 
+
+// Admin Routes
+router.get("/admin", getAllJobsAdmin);
+router.post("/", createJob);
+router.put("/:id", updateJob);
+router.delete("/:id", deleteJob);
+router.patch("/:id/status", updateJobStatus);
+
+// User-specific job listings
+router.get("/user/:userId", getUserJobs);
 
 module.exports = router;

@@ -36,7 +36,6 @@ const ProfilePage = () => {
     <div className="profile-container">
       {/* Main profile section */}
       <div className="profile-content">
-        {/* Left side - Basic info and photo */}
         <div className="profile-basic-info">
           <div className="info-text">
             <p>
@@ -65,7 +64,13 @@ const ProfilePage = () => {
             <div className="profile-photo-container">
               {user.profilePhoto ? (
                 <img
-                  src={user.profilePhoto.startsWith("http") ? user.profilePhoto : `${import.meta.env.VITE_BACKEND_URL}${user.profilePhoto}`}
+                  src={
+                    user.profilePhoto.startsWith("http")
+                      ? user.profilePhoto
+                      : `${import.meta.env.VITE_BACKEND_URL}${
+                          user.profilePhoto
+                        }`
+                  }
                   alt="Profile"
                   className="profile-photo"
                 />
@@ -76,6 +81,28 @@ const ProfilePage = () => {
             <Link to="/student-details">
               <button className="edit-btn">Edit</button>
             </Link>
+          </div>
+        </div>
+
+        {/* Resume Section */}
+        <div className="section-container">
+          <div className="section-header">
+            <h2>Resume</h2>
+          </div>
+          <div className="section-content">
+            <div
+              className={`resume-card ${user.resume ? "clickable" : ""}`}
+              onClick={user.resume ? openResume : undefined}
+            >
+              {user.resume ? (
+                <>
+                  <p>{user.fullName} resume.pdf</p>
+                  <div className="view-indicator">Click to view</div>
+                </>
+              ) : (
+                "No resume uploaded."
+              )}
+            </div>
           </div>
         </div>
 
@@ -126,6 +153,29 @@ const ProfilePage = () => {
           </div>
         </div>
 
+        {/* Experience Section */}
+        <div className="section-container">
+          <div className="section-header">
+            <h2>Experience</h2>
+          </div>
+          <div className="section-content experience-cards">
+            {user.experience && user.experience.length > 0 ? (
+              user.experience.map((exp, index) => (
+                <div className="experience-card" key={exp._id}>
+                  <h3>Full-stack developer</h3>
+                  <p>{exp.organizationName}</p>
+                  <p>({exp.duration})</p>
+                  {exp.details && (
+                    <p className="experience-details">{exp.details}</p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="experience-card empty">No experience added.</div>
+            )}
+          </div>
+        </div>
+
         {/* Education Section */}
         <div className="section-container">
           <div className="section-header">
@@ -134,7 +184,7 @@ const ProfilePage = () => {
           <div className="section-content education-grid">
             <div className="education-item">
               <h3>10th</h3>
-              <p>Percentage: {user.education?.tenth?.percentage || "N/A"}</p>
+              <p>Percentage/CGPA: {user.education?.tenth?.percentage || "N/A"}</p>
               <p>Year: {user.education?.tenth?.passingYear || "N/A"}</p>
             </div>
             <div className="education-item">
@@ -160,52 +210,6 @@ const ProfilePage = () => {
               </p>
               <p>Year: {user.education?.masters?.passingYear || "N/A"}</p>
             </div>
-          </div>
-        </div>
-
-        {/* Resume Section */}
-        <div className="section-container">
-          <div className="section-header">
-            <h2>Resume</h2>
-            <button className="upload-btn">Upload</button>
-          </div>
-          <div className="section-content">
-            <div
-              className={`resume-card ${user.resume ? "clickable" : ""}`}
-              onClick={user.resume ? openResume : undefined}
-            >
-              {user.resume ? (
-                <>
-                  <p>{user.fullName} resume.pdf</p>
-                  <div className="view-indicator">Click to view</div>
-                </>
-              ) : (
-                "No resume uploaded."
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Experience Section */}
-        <div className="section-container">
-          <div className="section-header">
-            <h2>Experience</h2>
-          </div>
-          <div className="section-content experience-cards">
-            {user.experience?.hasExperience ? (
-              <div className="experience-card">
-                <h3>Full-stack developer</h3>
-                <p>{user.experience.organizationName}</p>
-                <p>({user.experience.duration})</p>
-                {user.experience.details && (
-                  <p className="experience-details">
-                    {user.experience.details}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="experience-card empty">No experience added.</div>
-            )}
           </div>
         </div>
 

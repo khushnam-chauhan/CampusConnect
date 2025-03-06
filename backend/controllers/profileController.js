@@ -10,6 +10,17 @@ exports.getProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Ensure experience is always an array with at least one item
+    let experiences = user.experience || [];
+    if (!Array.isArray(experiences) || experiences.length === 0) {
+      experiences = [{
+        hasExperience: false,
+        organizationName: "",
+        duration: "",
+        details: "",
+      }];
+    }
+
     const mappedUser = {
       _id: user._id,
       fullName: user.fullName || "",
@@ -31,13 +42,8 @@ exports.getProfile = async (req, res) => {
         masters: { degree: "", percentageOrCGPA: "", passingYear: "" },
       },
       certifications: user.certifications || [],
-      skills: user.skills || [], // Add this line
-      experience: user.experience || {
-        hasExperience: false,
-        organizationName: "",
-        duration: "",
-        details: "",
-      },
+      skills: user.skills || [],
+      experience: experiences,
       profilePhoto: user.profilePhoto || null,
       resume: user.resume || null,
       role: user.role,
@@ -52,17 +58,22 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-// Process profile data - Common helper function
+// Process profile data helper function
 const processProfileData = (req) => {
   try {
     // Create the update object from form data
     const updateFields = { ...req.body };
     
     // Parse JSON fields
-    ['education', 'experience', 'certifications', 'skills'].forEach(field => { // Add 'skills' here
+    ['education', 'experience', 'certifications', 'skills'].forEach(field => {
       if (updateFields[field]) {
         try {
           updateFields[field] = JSON.parse(updateFields[field]);
+          
+          // Ensure experience is always an array
+          if (field === 'experience' && !Array.isArray(updateFields[field])) {
+            updateFields[field] = [updateFields[field]];
+          }
         } catch (err) {
           console.error(`Error parsing ${field} data:`, err);
         }
@@ -72,6 +83,14 @@ const processProfileData = (req) => {
     // Convert checkbox values to booleans
     if (updateFields.readyToRelocate) {
       updateFields.readyToRelocate = updateFields.readyToRelocate === "true";
+    }
+    
+    // Convert boolean values in experience array
+    if (Array.isArray(updateFields.experience)) {
+      updateFields.experience = updateFields.experience.map(exp => ({
+        ...exp,
+        hasExperience: exp.hasExperience === true || exp.hasExperience === "true"
+      }));
     }
     
     // Handle file uploads
@@ -123,6 +142,20 @@ exports.completeProfile = async (req, res) => {
     const userId = req.user._id;
     const updateFields = processProfileData(req);
     
+    // Handle experience array similarly to updateProfile
+    if (updateFields.experience && Array.isArray(updateFields.experience)) {
+      if (updateFields.experience.length === 1 && !updateFields.experience[0].hasExperience) {
+        updateFields.experience = [{
+          hasExperience: false,
+          organizationName: "",
+          duration: "",
+          details: "",
+        }];
+      } else {
+        updateFields.experience = updateFields.experience.filter(exp => exp.hasExperience);
+      }
+    }
+    
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
       updateFields, 
@@ -144,11 +177,27 @@ exports.completeProfile = async (req, res) => {
   }
 };
 
-// Update student profile - For subsequent profile updates
+// Update student profile for profile updates
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
     const updateFields = processProfileData(req);
+    
+    // If there's only one experience and hasExperience is false, ensure it's still an array
+    if (updateFields.experience && Array.isArray(updateFields.experience)) {
+      if (updateFields.experience.length === 1 && !updateFields.experience[0].hasExperience) {
+        // Keep it as an array with one empty experience
+        updateFields.experience = [{
+          hasExperience: false,
+          organizationName: "",
+          duration: "",
+          details: "",
+        }];
+      } else {
+        // Filter out any experiences that don't have the hasExperience flag set to true
+        updateFields.experience = updateFields.experience.filter(exp => exp.hasExperience);
+      }
+    }
     
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
@@ -170,6 +219,7 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // Upload Profile Photo
 exports.uploadProfilePhoto = async (req, res) => {

@@ -9,10 +9,12 @@ const JobSchema = new mongoose.Schema(
     email: { type: String, required: true },
     position: { type: String, required: true },
     startingDate: { type: Date, required: true },
+    applicationDeadline: { type: Date, required: true }, // Added application deadline
     salaryRange: { type: String },
     openings: { type: Number, default: 1 },
     location: { type: String, required: true },
     workType: { type: String, enum: ["Full-time", "Part-time", "Internship"], required: true },
+    category: { type: String, required: true }, // Added job category
     eligibilityCriteria: { type: String, required: true },
     jobDescription: { type: String, required: true },
     skills: [{ type: String, required: true }],

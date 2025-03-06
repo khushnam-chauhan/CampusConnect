@@ -25,15 +25,15 @@ const UserSchema = new mongoose.Schema(
     },
     existingBacklogs: { type: String },
     areaOfInterest: { type: String }, 
-    skills: [{ name: String }], // Added skills field as an array of strings
+    skills: [{ name: String }], 
     certifications: [{ name: String, image: String }],
     readyToRelocate: { type: Boolean, default: false },
-    experience: {
+    experience: [{
       hasExperience: { type: Boolean, default: false },
       organizationName: { type: String },
       duration: { type: String },
       details: { type: String },
-    },
+    }],
     resume: { type: String }, 
     profilePhoto: { type: String }, 
   },

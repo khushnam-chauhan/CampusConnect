@@ -4,7 +4,7 @@ import LandingPage from "./pages/LandingPage";
 import AuthContainer from "./pages/loginPage/AuthContainer";
 import Login from "./pages/loginPage/Login";
 import Signup from "./pages/loginPage/Register";
-import StudentDetails from "./pages/StudentDetails";
+import StudentDetails from "./pages/studentform/StudentDetails";
 import CampusConnectDashboard from "./pages/dashboard/Dashboard";
 import CDCTrainings from "./pages/job-listings/CDCTrainings";
 import Applications from "./pages/job-listings/Applications";
@@ -18,14 +18,13 @@ function App() {
   return (
     <Router> 
       <Routes>
-        {/* Routes with Navbar only (No Sidebar) */}
+        {/* No Sidebar */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/authContainer" element={<AuthContainer />} />
         <Route path="/student-details" element={<StudentDetails />} />
-
-        {/* Routes with Sidebar (Wrapped in DashboardLayout) */}
+        {/* // no navbar */}
         <Route path="/dashboard" element={<DashboardLayout><CampusConnectDashboard /></DashboardLayout>} />
         <Route path="/trainings" element={<DashboardLayout><CDCTrainings /></DashboardLayout>} />
         <Route path="/my-applications" element={<DashboardLayout><Applications /></DashboardLayout>} />

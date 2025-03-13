@@ -5,13 +5,13 @@ const SkillsSection = ({ skills, handleSkillChange, addSkill, removeSkill }) => 
   return (
     <div className="form-group">
       <label>Skills</label>
-      <div className="skills-container">
+      <div className="skills-container1">
         {skills.length === 0 && (
           <p className="no-items-message">Add at least one skill</p>
         )}
         
         {skills.map((skill, index) => (
-          <div key={index} className="skill-item">
+          <div key={index} className="skill-item1">
             <input
               type="text"
               placeholder="Enter skill"

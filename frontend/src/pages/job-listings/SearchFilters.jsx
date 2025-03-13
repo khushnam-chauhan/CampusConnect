@@ -1,171 +1,126 @@
-import React, { useState, useEffect } from 'react';
-import './JobListing.css';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const SearchFilters = ({ onFilterChange }) => {
   const [filters, setFilters] = useState({
     searchTerm: '',
     location: '',
-    category: 'All Categories',
-    workType: 'All Types',
-    skills: []
+    offerType: '',
+    skills: ''
   });
 
-  const [skillInput, setSkillInput] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isFilterVisible, setIsFilterVisible] = useState(true);
+  const [typingTimeout, setTypingTimeout] = useState(null);
 
-  // Sample data - replace with API calls or props as needed
-  const categories = [
-    'All Categories',
-    'Engineering',
-    'Technology',
-    'Marketing',
-    'Sales',
-    'Finance',
-    'Human Resources',
-    'Education',
-    'Healthcare',
-    'Design'
+  const offerTypes = [
+    "All Types",
+    "Full time Employment",
+    "Internship + PPO",
+    "Apprenticeship",
+    "Summer Internship"
   ];
-
-  const workTypes = ['All Types', 'Full-time', 'Part-time', 'Internship'];
-
-  useEffect(() => {
-    onFilterChange(filters);
-  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const updatedFilters = { ...filters, [name]: value };
-    setFilters(updatedFilters);
-    onFilterChange(updatedFilters);
+    setFilters({ ...filters, [name]: value });
+
+    if (typingTimeout) clearTimeout(typingTimeout);
+
+    const timeout = setTimeout(() => {
+      onFilterChange({
+        ...filters,
+        [name]: value,
+        skills: filters.skills.split(',').map(skill => skill.trim()).filter(Boolean)
+      });
+    }, 400);
+
+    setTypingTimeout(timeout);
   };
 
-  const addSkill = (e) => {
-    e.preventDefault();
-    if (skillInput.trim() && !filters.skills.includes(skillInput.trim())) {
-      const updatedSkills = [...filters.skills, skillInput.trim()];
-      const updatedFilters = { ...filters, skills: updatedSkills };
-      setFilters(updatedFilters);
-      onFilterChange(updatedFilters);
-      setSkillInput('');
-    }
-  };
-
-  const removeSkill = (skillToRemove) => {
-    const updatedSkills = filters.skills.filter(skill => skill !== skillToRemove);
-    const updatedFilters = { ...filters, skills: updatedSkills };
-    setFilters(updatedFilters);
-    onFilterChange(updatedFilters);
-  };
-
-  const clearAllFilters = () => {
+  const clearFilters = () => {
     const resetFilters = {
       searchTerm: '',
       location: '',
-      category: 'All Categories',
-      workType: 'All Types',
-      skills: []
+      offerType: '',
+      skills: ''
     };
     setFilters(resetFilters);
     onFilterChange(resetFilters);
-    setSkillInput('');
   };
 
   return (
-    <div className={`search-filters-container ${isExpanded ? 'expanded' : ''}`}>
-      <div className="search-bar">
-        <input
-          type="text"
-          name="searchTerm"
-          value={filters.searchTerm}
-          onChange={handleInputChange}
-          placeholder="Search by job title or company..."
-          className="search-input"
-        />
-        <button 
-          className="advanced-filters-toggle"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          {isExpanded ? 'Hide Filters' : 'Show Filters'}
-        </button>
+    <div className="search-filters">
+      <div className="filters-header">
+        <h3>Search Jobs</h3>
+        <div className='filters-btns'>
+          <button
+            className="toggle-filters-btn"
+            onClick={() => setIsFilterVisible(!isFilterVisible)}
+          >
+            {isFilterVisible ? 'Hide Filters ▲' : 'Show Filters ▼'}
+          </button>
+          <button className="clear-filters" onClick={clearFilters}>
+            Clear all filters
+          </button>
+        </div>
       </div>
 
-      <div className="advanced-filters">
-        <div className="filter-section">
-          <label>Location</label>
-          <input
-            type="text"
-            name="location"
-            value={filters.location}
-            onChange={handleInputChange}
-            placeholder="City, state, or remote"
-            className="filter-input"
-          />
-        </div>
+      {isFilterVisible && (
+        <div className="filter-form">
+          <div className="filters-container">
+            <div className="filter-group">
+              <label htmlFor="searchTerm">Search by keyword</label>
+              <input
+                type="text"
+                id="searchTerm"
+                name="searchTerm"
+                value={filters.searchTerm}
+                onChange={handleInputChange}
+                placeholder="Job profile or company"
+              />
+            </div>
 
-        <div className="filter-section">
-          <label>Category</label>
-          <select
-            name="category"
-            value={filters.category}
-            onChange={handleInputChange}
-            className="filter-select"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div className="filter-group">
+              <label htmlFor="location">Location</label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                value={filters.location}
+                onChange={handleInputChange}
+                placeholder="City, state, or remote"
+              />
+            </div>
 
-        <div className="filter-section">
-          <label>Job Type</label>
-          <select
-            name="workType"
-            value={filters.workType}
-            onChange={handleInputChange}
-            className="filter-select"
-          >
-            {workTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div className="filter-group">
+              <label htmlFor="offerType">Offer Type</label>
+              <select
+                id="offerType"
+                name="offerType"
+                value={filters.offerType}
+                onChange={handleInputChange}
+              >
+                {offerTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <div className="filter-section skills-filter">
-          <label>Skills</label>
-          <form onSubmit={addSkill} className="skills-input-form">
-            <input
-              type="text"
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              placeholder="Add a skill..."
-              className="filter-input"
-            />
-            <button type="submit" className="add-skill-btn">Add</button>
-          </form>
-          <div className="skills-tags">
-            {filters.skills.map((skill) => (
-              <div key={skill} className="skill-tag">
-                {skill}
-                <button 
-                  onClick={() => removeSkill(skill)}
-                  className="remove-skill-btn"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+            <div className="filter-group">
+              <label htmlFor="skills">Skills (comma-separated)</label>
+              <input
+                type="text"
+                id="skills"
+                name="skills"
+                value={filters.skills}
+                onChange={handleInputChange}
+                placeholder="e.g. ReactJS, NodeJS, MongoDB"
+              />
+            </div>
           </div>
         </div>
-
-        <button onClick={clearAllFilters} className="clear-filters-btn">
-          Clear All Filters
-        </button>
-      </div>
+      )}
     </div>
   );
 };

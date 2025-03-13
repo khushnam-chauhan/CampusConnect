@@ -13,9 +13,13 @@ import SkillsSection from "./Skills";
 import CertificationsSection from "./Certifications";
 import ExperienceSection from "./Experience";
 import UploadsSection from "./Uploads";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchUser } from "../../redux/authSlice"; // Adjust path as needed
 
 const StudentDetails = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +58,12 @@ const StudentDetails = () => {
   });
 
   useEffect(() => {
+    // Redirect if user is not authenticated
+    if (!isAuthenticated && !localStorage.getItem("token")) {
+      navigate("/login");
+      return;
+    }
+    
     const fetchUserDetails = async () => {
       setLoading(true);
       try {
@@ -113,7 +123,7 @@ const StudentDetails = () => {
     };
 
     fetchUserDetails();
-  }, [API_URL]);
+  }, [API_URL, isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -251,14 +261,14 @@ const StudentDetails = () => {
   // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateForm()) {
       return;
     }
-
+  
     setLoading(true);
     const formDataToSend = new FormData();
-
+  
     // Process form data
     Object.keys(formData).forEach((key) => {
       if (key === "education") {
@@ -276,7 +286,7 @@ const StudentDetails = () => {
             }))
           )
         );
-
+  
         // Append certification images
         formData.certifications.forEach((cert, index) => {
           if (cert.image && typeof cert.image !== "string") {
@@ -299,21 +309,37 @@ const StudentDetails = () => {
         formDataToSend.append(key, formData[key]);
       }
     });
-
+  
     try {
       const token = localStorage.getItem("token");
-      await axios.post(`${API_URL}/profile/update`, formDataToSend, {
+      const response = await axios.post(`${API_URL}/profile/update`, formDataToSend, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-
+  
       toast.success("Profile updated successfully!");
-      navigate("/dashboard");
+      
+      // The key fix: First fetch the user data completely before navigating
+      const userDispatch = await dispatch(fetchUser());
+      
+      // Only navigate once the user data is actually loaded
+      if (userDispatch.type.includes('fulfilled')) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        toast.warning("Profile updated but there was an issue refreshing your session. Please try going to dashboard manually.");
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error(error.response?.data?.message || "Error updating profile");
+      if (error.response?.status === 401) {
+        // Token expired, redirect to login
+        toast.error("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.message || "Error updating profile");
+      }
     } finally {
       setLoading(false);
     }
@@ -441,6 +467,23 @@ const StudentDetails = () => {
                 formData={formData}
                 handleChange={handleChange}
               />
+              <div className="form-group">
+              <label>Area of Interest</label>
+              <input
+                type="text"
+                name="areaOfInterest"
+                value={formData.areaOfInterest}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <SkillsSection
+              skills={formData.skills}
+              handleSkillChange={handleSkillChange}
+              addSkill={addSkill}
+              removeSkill={removeSkill}
+            />
+
             </div>
 
             <div className="form-column">
@@ -456,24 +499,9 @@ const StudentDetails = () => {
           </div>
 
           <div className="form-section">
-            <div className="form-group">
-              <label>Area of Interest</label>
-              <input
-                type="text"
-                name="areaOfInterest"
-                value={formData.areaOfInterest}
-                onChange={handleChange}
-                required
-              />
-            </div>
+            
 
-            <SkillsSection
-              skills={formData.skills}
-              handleSkillChange={handleSkillChange}
-              addSkill={addSkill}
-              removeSkill={removeSkill}
-            />
-
+            
             <CertificationsSection
               hasCertifications={formData.hasCertifications}
               certifications={formData.certifications}
@@ -485,6 +513,7 @@ const StudentDetails = () => {
             <div className="form-group">
               <label>Whether ready to work across India?</label>
               <div className="checkbox-container">
+                <label htmlFor="readyToRelocate">Yes</label>
                 <input
                   type="checkbox"
                   name="readyToRelocate"
@@ -492,7 +521,6 @@ const StudentDetails = () => {
                   onChange={handleChange}
                   id="readyToRelocate"
                 />
-                <label htmlFor="readyToRelocate">Yes</label>
               </div>
             </div>
 
@@ -510,7 +538,7 @@ const StudentDetails = () => {
             API_URL={API_URL}
           />
 
-          <button type="submit" className="submit-button" disabled={loading}>
+          <button onClick={handleSubmit} className="submit-button" disabled={loading}>
             {loading ? "Submitting..." : "Submit"}
           </button>
         </form>

@@ -11,6 +11,7 @@ const ExperienceSection = ({ experiences, handleChange, addExperience, removeExp
             <div className="form-group">
               <label>Do you have any experience?</label>
               <div className="checkbox-container">
+                <label htmlFor={`hasExperience-${index}`}>Yes</label>
                 <input
                   type="checkbox"
                   name={`experience-${index}-hasExperience`}
@@ -18,7 +19,6 @@ const ExperienceSection = ({ experiences, handleChange, addExperience, removeExp
                   onChange={(e) => handleChange(index, 'hasExperience', e.target.checked)}
                   id={`hasExperience-${index}`}
                 />
-                <label htmlFor={`hasExperience-${index}`}>Yes</label>
               </div>
             </div>
           )}

@@ -2,30 +2,58 @@ const mongoose = require("mongoose");
 
 const JobSchema = new mongoose.Schema(
   {
-    employerName: { type: String, required: true },
+    companyName: { type: String, required: true },
+    officeAddress: { type: String, required: true },
+    website: { type: String, required: true },
+    yearOfEstablishment: { type: Number, required: true },
+    contactPersonName: { type: String, required: true },
     contactNumber: { type: String, required: true },
-    organizationName: { type: String, required: true },
-    whatsappNumber: { type: String },
     email: { type: String, required: true },
-    position: { type: String, required: true },
-    startingDate: { type: Date, required: true },
-    applicationDeadline: { type: Date, required: true },
-    salaryRange: { type: String },
-    openings: { type: Number, default: 1 },
-    location: { type: String, required: true },
-    workType: { type: String, enum: ["Full-time", "Part-time", "Internship"], required: true },
-    category: { type: String, required: true }, 
-    eligibilityCriteria: { type: String, required: true },
-    jobDescription: { type: String, required: true },
-    skills: [{ type: String, required: true }],
-    socialLinks: [{ type: String, required:true }],
-    messageForCDC: { type: String },
-    attachments: [{ type: String }], 
-    externalApplicationLink: { type: String }, 
+    profiles: { type: String, required: true },
+    eligibility: { type: String, required: true },
+    vacancies: { type: Number, required: true },
+    offerType: { 
+      type: String, 
+      enum: ["Full time Employment", "Internship + PPO", "Apprenticeship", "Summer Internship"], 
+      required: true 
+    },
+    ctcOrStipend: { type: String, required: true }, 
+    location: { type: String, required: true }, 
+    resultDeclaration: { 
+      type: String, 
+      enum: ["Same day", "With in a week"], 
+      required: true 
+    },
+    dateOfJoining: { type: Date, required: true },
+    reference: { 
+      type: String, 
+      enum: ["Dr. Vibha Thakur", "Ms. Shruti Bansal", "Ms. Mansi Shrivastava", "Ms. Charu Gola", "Self"], 
+      required: true 
+    },
+    skills: {
+      type: [String],
+      required: true
+    },
+    category: {
+      type: [String],
+      required: true
+    },
+    jobDescription: { type: String }, 
+    companyLogo: { type: String }, 
+    additionalInfo: { type: String },
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
-    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }, 
+    postedBy: { type: String }, 
   },
   { timestamps: true }
 );
+
+JobSchema.pre('save', function(next) {
+  if (this.reference === "Self") {
+    this.postedBy = this.contactPersonName;
+  } else {
+    this.postedBy = this.reference;
+  }
+  next();
+});
 
 module.exports = mongoose.model("Job", JobSchema);

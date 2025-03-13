@@ -4,33 +4,19 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const fetchUser = createAsyncThunk(
-  "auth/fetchUser", 
+  "auth/fetchUser",
   async (_, thunkAPI) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token found");
 
-      console.log(`Fetching user from: ${API_URL}/profile/me`);
-      
-      try {
-        const response = await axios.get(`${API_URL}/profile/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        return response.data;
-      } catch (prefixError) {
-        console.log("Trying without /api prefix");
-        const response = await axios.get(`${API_URL}/profile/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        return response.data;
-      }
+      const response = await axios.get(`${API_URL}/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      return response.data;
     } catch (error) {
       console.error("Error fetching user:", error);
-      
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
-      }
-      
       return thunkAPI.rejectWithValue(
         error.response?.data || { message: "Failed to fetch user" }
       );
@@ -38,23 +24,21 @@ export const fetchUser = createAsyncThunk(
   }
 );
 
-// Login user
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (credentials, thunkAPI) => {
     try {
-      try {
-        const response = await axios.post(`${API_URL}/api/auth/login`, credentials);
-        localStorage.setItem("token", response.data.token);
-        return await thunkAPI.dispatch(fetchUser()).unwrap();
-      } catch (prefixError) {
-        // If that fails, try without /api prefix
-        const response = await axios.post(`${API_URL}/auth/login`, credentials);
-        localStorage.setItem("token", response.data.token);
-        return await thunkAPI.dispatch(fetchUser()).unwrap();
-      }
+      const response = await axios.post(`${API_URL}/auth/login`, credentials);
+
+      // ✅ Save token + role in localStorage
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("role", response.data.user.role);
+
+      // ✅ Set Axios Header
+      axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
+
+      return response.data;
     } catch (error) {
-      console.error("Login error:", error);
       return thunkAPI.rejectWithValue(
         error.response?.data || { message: "Login failed" }
       );
@@ -62,48 +46,50 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Auth slice
+const initialState = {
+  user: null,
+  token: localStorage.getItem("token"),
+  role: localStorage.getItem("role"),
+  isAuthenticated: !!localStorage.getItem("token"),
+  loading: false,
+  error: null,
+};
+
 const authSlice = createSlice({
   name: "auth",
-  initialState: {
-    user: null,
-    token: localStorage.getItem("token") || null,
-    loading: false,
-    error: null,
-    isAuthenticated: Boolean(localStorage.getItem("token")),
-  },
+  initialState,
   reducers: {
     logout: (state) => {
       localStorage.removeItem("token");
+      localStorage.removeItem("role");
       state.user = null;
       state.token = null;
+      state.role = null;
       state.isAuthenticated = false;
       state.error = null;
-    },
-    clearError: (state) => {
-      state.error = null;
+      delete axios.defaults.headers.common["Authorization"];
     },
   },
   extraReducers: (builder) => {
     builder
-      // Login cases
+      // Login actions
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
         state.isAuthenticated = true;
-        state.token = localStorage.getItem("token");
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.role = action.payload.user.role;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.isAuthenticated = false;
       })
-      
-      // Fetch user cases
+      // Fetch user actions
       .addCase(fetchUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -111,16 +97,24 @@ const authSlice = createSlice({
       .addCase(fetchUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
+        state.role = action.payload.role;
         state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(fetchUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.isAuthenticated = false;
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
         state.user = null;
+        state.token = null;
+        state.role = null;
+        state.isAuthenticated = false;
+        // Redirect to login page
+        window.location.href = "/login";
       });
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout } = authSlice.actions;
 export default authSlice.reducer;

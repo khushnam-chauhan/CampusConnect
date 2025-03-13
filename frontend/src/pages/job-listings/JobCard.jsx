@@ -1,92 +1,106 @@
-import React, { useState } from 'react';
-import './JobListing.css';
-import JobDescriptionPage from './JobDescription';
+"use client"
+
+import { useState } from "react"
+import { FaMapMarkerAlt, FaBuilding, FaUsers, FaMoneyBillWave, FaCalendarAlt } from "react-icons/fa"
+import defaultLogo from "../../assets/hero-img.png"
+import JobDescriptionPage from "./JobDescription"
 
 const JobCard = ({ job }) => {
-  const [showJobDescription, setShowJobDescription] = useState(false);
-  const [applyDirectly, setApplyDirectly] = useState(false);
+  const [showJobDescription, setShowJobDescription] = useState(false)
 
   const formatDate = (dateString) => {
-    const options = { month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
+    const options = { year: "numeric", month: "long", day: "numeric" }
+    return new Date(dateString).toLocaleDateString("en-US", options)
+  }
 
-  const calculateDaysRemaining = (deadline) => {
-    const today = new Date();
-    const deadlineDate = new Date(deadline);
-    const timeDiff = deadlineDate.getTime() - today.getTime();
-    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  const handleViewDetails = () => {
+    setShowJobDescription(true)
+  }
+
+  const handleCloseDescription = () => {
+    setShowJobDescription(false)
+  }
+
+  const handleApply = (formData, jobId) => {
+    // Handle the application submission
+    console.log("Application submitted:", formData)
+    console.log("For job:", jobId)
+
     
-    if (daysDiff < 0) return 'Expired';
-    if (daysDiff === 0) return 'Last day';
-    return `${daysDiff} days left`;
-  };
-
-  const handleDetailsClick = () => {
-    setShowJobDescription(true);
-    setApplyDirectly(false);
-  };
-
-  const handleApplyClick = () => {
-    setShowJobDescription(true);
-    setApplyDirectly(true);
-  };
-
-  const handleCloseJobDescription = () => {
-    setShowJobDescription(false);
-  };
+    // submitApplication(formData, jobId)
+    //   .then(response => {
+    //     console.log('Application submitted successfully');
+    //   })
+    //   .catch(error => {
+    //     console.error('Error submitting application:', error);
+    //   });
+  }
 
   return (
     <>
       <div className="job-card">
         <div className="job-card-header">
-          <h3 className="job-title">{job.position}</h3>
+          <div className="company-logo">
+            <img src={job.companyLogo || defaultLogo} alt={`${job.companyName} logo`} />
+          </div>
+          <div className="job-title-section">
+            <h3 className="job-title">{job.profiles}</h3>
+            <h4 className="company-name">{job.companyName}</h4>
+          </div>
         </div>
-        
-        <div className="job-company">
-          <span>{job.organizationName}</span>
-          <span className="job-location">{job.location}</span>
+
+        <div className="job-details">
+          <div className="job-detail-item">
+            <FaMapMarkerAlt className="job-icon" />
+            <span>{job.location}</span>
+          </div>
+
+          <div className="job-detail-item">
+            <FaBuilding className="job-icon" />
+            <span>{job.offerType}</span>
+          </div>
+
+          <div className="job-detail-item">
+            <FaUsers className="job-icon" />
+            <span>
+              {job.vacancies} {job.vacancies > 1 ? "positions" : "position"}
+            </span>
+          </div>
+
+          <div className="job-detail-item">
+            <FaMoneyBillWave className="job-icon" />
+            <span>{job.ctcOrStipend}</span>
+          </div>
+          <div className="job-detail-item">
+            <FaMoneyBillWave className="job-icon" />
+            <span>skills: {job.skills.join(', ')}</span>
+          </div>
+
+          {/* <div className="job-detail-item">
+            <FaCalendarAlt className="job-icon" />
+            <span>Join by: {formatDate(job.dateOfJoining)}</span>
+          </div> */}
         </div>
-        
-        <div className="job-meta">
-          <span className="job-type">{job.workType}</span>
-          <span className="job-category">{job.category}</span>
-        </div>
-        
-        <div className="job-deadline">
-          Apply by: {formatDate(job.applicationDeadline)}
-          <span className="days-remaining">{calculateDaysRemaining(job.applicationDeadline)}</span>
-        </div>
-        
-        <div className="job-skills">
-          {job.skills.slice(0, 3).map((skill, index) => (
-            <span key={index} className="skill-badge">{skill}</span>
-          ))}
-          {job.skills.length > 3 && <span className="more-skills">+{job.skills.length - 3}</span>}
-        </div>
-        
+
+        {job.eligibility && (
+          <div className="job-eligibility">
+            <h4>Eligibility:</h4>
+            <p>{job.eligibility.length > 100 ? `${job.eligibility.substring(0, 100)}...` : job.eligibility}</p>
+          </div>
+        )}
+
         <div className="job-card-footer">
-          <button className="view-details-btn" onClick={handleDetailsClick}>Details</button>
-          <button 
-            className="apply-now-btn" 
-            onClick={handleApplyClick}
-            disabled={calculateDaysRemaining(job.applicationDeadline) === 'Expired'}
-          >
-            Apply
+          <button onClick={handleViewDetails} className="view-details-btn">
+            View Details
           </button>
+          <p className="posted-date">Posted: {job.createdAt ? formatDate(job.createdAt) : "Recently"}</p>
         </div>
       </div>
 
-      {showJobDescription && (
-        <JobDescriptionPage 
-          job={job} 
-          onClose={handleCloseJobDescription} 
-          onApply={handleApplyClick} 
-          initiallyApplying={applyDirectly}
-        />
-      )}
+      {showJobDescription && <JobDescriptionPage job={job} onClose={handleCloseDescription} onApply={handleApply} />}
     </>
-  );
-};
+  )
+}
 
-export default JobCard;
+export default JobCard
+

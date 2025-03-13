@@ -1,0 +1,546 @@
+/* AdminJobManagement.css */
+
+.admin-job-management {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.admin-job-management h1 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+/* Error message styling */
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #c62828;
+}
+
+/* Control panel styling */
+.control-panel {
+  margin-bottom: 20px;
+}
+
+.create-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+.create-button:hover {
+  background-color: #388e3c;
+}
+
+/* Filter controls styling */
+.filter-controls {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  gap: 15px;
+}
+
+.filter-controls label {
+  display: flex;
+  flex-direction: column;
+  margin-right: 15px;
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-controls select,
+.filter-controls input {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.search-form {
+  flex: 2;
+  min-width: 300px;
+}
+
+.search-form input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.refresh-button,
+.clear-button {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+.refresh-button:hover,
+.clear-button:hover {
+  background-color: #e0e0e0;
+}
+
+/* Bulk actions styling */
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  background-color: #e8f5e9;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.bulk-actions span {
+  margin-right: 15px;
+  font-weight: 500;
+}
+
+.approve-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.approve-button:hover {
+  background-color: #388e3c;
+}
+
+.reject-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.reject-button:hover {
+  background-color: #d32f2f;
+}
+
+/* Loading and empty state styling */
+.loading,
+.no-items {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+/* Job list table styling */
+.job-list {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+thead {
+  background-color: #f5f5f5;
+}
+
+th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 500;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+  cursor: pointer;
+}
+
+th:hover {
+  background-color: #eee;
+}
+
+td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+.job-row {
+  transition: background-color 0.2s;
+}
+
+.job-row:hover {
+  background-color: #f9f9f9;
+}
+
+.job-row.approved {
+  background-color: #f1f8e9;
+}
+
+.job-row.pending {
+  background-color: #fff8e1;
+}
+
+.job-row.rejected {
+  background-color: #ffebee;
+}
+
+/* Company info styling */
+.company-info {
+  display: flex;
+  align-items: center;
+}
+
+.company-logo-small {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  margin-right: 10px;
+  border-radius: 4px;
+}
+
+/* Status badge styling */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.approved {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.status-badge.pending {
+  background-color: #fff9c4;
+  color: #f57f17;
+}
+
+.status-badge.rejected {
+  background-color: #ffcdd2;
+  color: #c62828;
+}
+
+/* Action buttons styling */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.details-button,
+.edit-button,
+.delete-button {
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  border: 1px solid #ddd;
+}
+
+.details-button {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border-color: #bbdefb;
+}
+
+.edit-button {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-color: #c8e6c9;
+}
+
+.delete-button {
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #ffcdd2;
+}
+
+.details-button:hover {
+  background-color: #bbdefb;
+}
+
+.edit-button:hover {
+  background-color: #c8e6c9;
+}
+
+.delete-button:hover {
+  background-color: #ffcdd2;
+}
+
+/* Job details styling */
+.details-row {
+  background-color: #f5f5f5;
+}
+
+.job-details {
+  padding: 15px;
+}
+
+.detail-section {
+  margin-bottom: 20px;
+}
+
+.detail-section h4 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.detail-section p {
+  margin: 5px 0;
+  line-height: 1.5;
+}
+
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.tag {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.skill-tag {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.category-tag {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Modal styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Form styling */
+.job-form {
+  padding: 20px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-section.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-section h3 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 18px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.cancel-button,
+.submit-button {
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.cancel-button {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.submit-button {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.submit-button:hover {
+  background-color: #1976d2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .filter-controls label {
+    margin-right: 0;
+    min-width: 100%;
+  }
+  
+  .search-form {
+    min-width: 100%;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .action-buttons button {
+    margin-bottom: 5px;
+    width: 100%;
+  }
+  
+  .bulk-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .bulk-actions button {
+    margin-top: 10px;
+    width: 100%;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

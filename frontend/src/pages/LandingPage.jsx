@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react';
 
 import Hero from "../components/Hero";
 import Features from "../components/Features";
@@ -9,9 +9,12 @@ import FAQ from '../components/FAQ';
 import Placed from '../components/Placed';
 
 const LandingPage = () => {
+
+
+
   return (
     <>
-    <Navbar />
+      <Navbar />
       <Hero />
       <Features />
       <HiringSection/>

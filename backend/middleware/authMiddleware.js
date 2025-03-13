@@ -10,6 +10,10 @@ exports.protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
+      
+      // Add this line to set isAdmin based on role
+      req.user.isAdmin = req.user.role === "admin";
+      
       next();
     } catch (error) {
       res.status(401).json({ message: "Not authorized, token failed" });

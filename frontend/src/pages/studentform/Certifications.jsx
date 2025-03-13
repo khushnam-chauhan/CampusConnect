@@ -12,6 +12,7 @@ const CertificationsSection = ({
       <div className="form-group">
         <label>Do you have any certifications?</label>
         <div className="checkbox-container">
+        <label htmlFor="hasCertifications">Yes</label>
           <input
             type="checkbox"
             name="hasCertifications"
@@ -19,7 +20,7 @@ const CertificationsSection = ({
             onChange={handleChange}
             id="hasCertifications"
           />
-          <label htmlFor="hasCertifications">Yes</label>
+         
         </div>
       </div>
 

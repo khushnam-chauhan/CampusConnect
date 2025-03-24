@@ -6,9 +6,9 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ["student", "admin", "staff"], default: "student" },
-
+    status: { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active' },
     // Student Profile Fields
-    rollNo: { type: String, unique: true, sparse: true },
+    rollNo: { type: String,sparse: true },
     mobileNo: { type: String }, 
     whatsappNo: { type: String },
     mailId: { type: String },

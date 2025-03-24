@@ -41,7 +41,7 @@ const Login = () => {
 
         if (profileRes && profileRes.data) {
           const user = profileRes.data;
-          console.log("User Data:", user); // Debugging step
+          
           
           // Store user role in localStorage
           localStorage.setItem("role", user.role);

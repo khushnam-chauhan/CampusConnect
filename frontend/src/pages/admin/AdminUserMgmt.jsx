@@ -1,56 +1,94 @@
 import React, { useState, useEffect } from 'react';
 import './AdminUserManagement.css';
 
-const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRole }) => {
+const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRole, createUser }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [roleFilter, setRoleFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeUserId, setActiveUserId] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
-  const [editingUser, setEditingUser] = useState(null);
   const [userForm, setUserForm] = useState({
-    name: '',
+    fullName: '',
     email: '',
-    phone: '',
-    role: '',
-    status: ''
+    password: '',
+    mobileNo: '',
+    role: 'student',
+    status: 'active',
+    rollNo: ''
   });
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [showEditUser, setShowEditUser] = useState(false); // New state for edit modal
+  const [editingUserId, setEditingUserId] = useState(null); // Track user being edited
+  const [modalUser, setModalUser] = useState(null);
 
   useEffect(() => {
     loadUsers();
-  }, [roleFilter]);
+  }, [roleFilter, searchTerm]);
 
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetchUsers({
+      const filters = {
         role: roleFilter !== 'all' ? roleFilter : null,
-        search: searchTerm || null
-      });
-      setUsers(response.data);
+        search: searchTerm || null,
+      };
+      const response = await fetchUsers(filters);
+      console.log('fetchUsers response:', response);
+      let userData;
+      if (Array.isArray(response)) {
+        userData = response;
+      } else if (response && Array.isArray(response.data)) {
+        userData = response.data;
+      } else if (response && response.success && Array.isArray(response.data)) {
+        userData = response.data;
+      } else {
+        throw new Error('Invalid response format from server');
+      }
+      setUsers(userData);
       setError(null);
       setSelectedUsers([]);
     } catch (err) {
-      setError('Failed to load users. Please try again.');
-      console.error(err);
+      setError('Failed to load users: ' + (err.message || 'Unknown error'));
+      console.error('Error loading users:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateUser = async (userId, userData) => {
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    if (!createUser || typeof createUser !== 'function') {
+      setError('Create user functionality is not available. Please contact support.');
+      return;
+    }
     try {
-      await updateUser(userId, userData);
-      setUsers(users.map(user => 
-        user._id === userId ? { ...user, ...userData } : user
-      ));
-      setEditingUser(null);
+      const newUser = await createUser(userForm);
+      setUsers([...users, newUser]);
+      setShowAddUser(false);
+      setUserForm({ fullName: '', email: '', password: '', mobileNo: '', role: 'student', status: 'active', rollNo: '' });
+      setError(null); // Clear any previous error
     } catch (err) {
-      setError('Failed to update user.');
-      console.error(err);
+      setError(err.response?.data?.message || 'Failed to create user');
+      console.error('Error creating user:', err);
+    }
+  };
+  
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    try {
+      await updateUser(editingUserId, userForm);
+      setUsers(users.map(user => 
+        user._id === editingUserId ? { ...user, ...userForm } : user
+      ));
+      setShowEditUser(false);
+      setEditingUserId(null);
+      setUserForm({ fullName: '', email: '', password: '', mobileNo: '', role: 'student', status: 'active', rollNo: '' });
+      setError(null); // Clear any previous error
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update user');
+      console.error('Error updating user:', err);
     }
   };
 
@@ -62,7 +100,7 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
         setSelectedUsers(selectedUsers.filter(id => id !== userId));
       } catch (err) {
         setError('Failed to delete user.');
-        console.error(err);
+        console.error('Error deleting user:', err);
       }
     }
   };
@@ -75,28 +113,27 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
       ));
     } catch (err) {
       setError(`Failed to change user role to ${newRole}.`);
-      console.error(err);
+      console.error('Error changing role:', err);
     }
   };
 
-  const toggleUserDetails = (userId) => {
-    setActiveUserId(activeUserId === userId ? null : userId);
-    setEditingUser(null);
-  };
-
   const startEditUser = (user) => {
-    setEditingUser(user._id);
+    setEditingUserId(user._id);
     setUserForm({
-      name: user.name,
-      email: user.email,
-      phone: user.phone || '',
-      role: user.role,
-      status: user.status
+      fullName: user.fullName || '',
+      email: user.email || '',
+      mobileNo: user.mobileNo || '',
+      role: user.role || 'student',
+      status: user.status || 'active',
+      rollNo: user.rollNo || ''
     });
+    setShowEditUser(true); // Open edit modal
   };
 
   const cancelEdit = () => {
-    setEditingUser(null);
+    setShowEditUser(false);
+    setEditingUserId(null);
+    setUserForm({ fullName: '', email: '', password: '', mobileNo: '', role: 'student', status: 'active', rollNo: '' });
   };
 
   const handleFormChange = (e) => {
@@ -104,25 +141,14 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
     setUserForm({ ...userForm, [name]: value });
   };
 
-  const handleFormSubmit = (e, userId) => {
-    e.preventDefault();
-    handleUpdateUser(userId, userForm);
-  };
-
   const handleSelectUser = (userId) => {
-    if (selectedUsers.includes(userId)) {
-      setSelectedUsers(selectedUsers.filter(id => id !== userId));
-    } else {
-      setSelectedUsers([...selectedUsers, userId]);
-    }
+    setSelectedUsers(prev => 
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    );
   };
 
   const handleSelectAll = () => {
-    if (selectedUsers.length === users.length) {
-      setSelectedUsers([]);
-    } else {
-      setSelectedUsers(users.map(user => user._id));
-    }
+    setSelectedUsers(selectedUsers.length === users.length ? [] : users.map(user => user._id));
   };
 
   const handleBulkDelete = async () => {
@@ -133,7 +159,7 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
         setSelectedUsers([]);
       } catch (err) {
         setError('Failed to delete some users.');
-        console.error(err);
+        console.error('Error bulk deleting:', err);
       }
     }
   };
@@ -143,14 +169,12 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
       try {
         await Promise.all(selectedUsers.map(id => changeUserRole(id, newRole)));
         setUsers(users.map(user => 
-          selectedUsers.includes(user._id) 
-            ? { ...user, role: newRole } 
-            : user
+          selectedUsers.includes(user._id) ? { ...user, role: newRole } : user
         ));
         setSelectedUsers([]);
       } catch (err) {
         setError(`Failed to change role to ${newRole} for some users.`);
-        console.error(err);
+        console.error('Error bulk changing role:', err);
       }
     }
   };
@@ -161,21 +185,30 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
   };
 
   const sortUsers = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
+    const direction = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
     setSortConfig({ key, direction });
-
     setUsers([...users].sort((a, b) => {
-      if (a[key] < b[key]) {
-        return direction === 'asc' ? -1 : 1;
-      }
-      if (a[key] > b[key]) {
-        return direction === 'asc' ? 1 : -1;
-      }
-      return 0;
+      const aValue = a[key] || '';
+      const bValue = b[key] || '';
+      return direction === 'asc' 
+        ? aValue.localeCompare(bValue, undefined, { numeric: true }) 
+        : bValue.localeCompare(aValue, undefined, { numeric: true });
     }));
+  };
+
+  const openUserModal = (user) => {
+    setModalUser(user);
+  };
+
+  const closeUserModal = () => {
+    setModalUser(null);
+  };
+
+  const formatDate = (date) => {
+    if (!date || isNaN(new Date(date))) {
+      return 'Not available';
+    }
+    return new Date(date).toLocaleDateString();
   };
 
   return (
@@ -191,8 +224,7 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
             <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
               <option value="all">All Users</option>
               <option value="student">Students</option>
-              <option value="employee">Employees</option>
-              <option value="employer">Employers</option>
+              <option value="staff">Staff</option>
               <option value="admin">Admins</option>
             </select>
           </label>
@@ -200,16 +232,15 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
           <form onSubmit={handleSearch} className="search-form">
             <input
               type="text"
-              placeholder="Search by name, email, or ID"
+              placeholder="Search by name, email, or roll no"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button type="submit">Search</button>
           </form>
           
-          <button onClick={loadUsers} className="refresh-button">
-            Refresh
-          </button>
+          <button onClick={loadUsers} className="refresh-button">Refresh</button>
+          <button onClick={() => setShowAddUser(true)} className="add-user-button">Add User</button>
         </div>
         
         {selectedUsers.length > 0 && (
@@ -222,17 +253,203 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
               >
                 <option value="" disabled>Change Role</option>
                 <option value="student">Student</option>
-                <option value="employee">Employee</option>
-                <option value="employer">Employer</option>
+                <option value="staff">Staff</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <button onClick={handleBulkDelete} className="delete-button">
-              Delete Selected
-            </button>
+            <button onClick={handleBulkDelete} className="delete-button">Delete Selected</button>
           </div>
         )}
       </div>
+
+      {showAddUser && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Add New User</h3>
+            <form onSubmit={handleCreateUser}>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="fullName">Name</label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    value={userForm.fullName}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={userForm.email}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={userForm.password}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="mobileNo">Mobile</label>
+                  <input
+                    type="text"
+                    id="mobileNo"
+                    name="mobileNo"
+                    value={userForm.mobileNo}
+                    onChange={handleFormChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="role">Role</label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={userForm.role}
+                    onChange={handleFormChange}
+                    required
+                  >
+                    <option value="student">Student</option>
+                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                {userForm.role === 'student' && (
+                  <div className="form-group">
+                    <label htmlFor="rollNo">Roll Number</label>
+                    <input
+                      type="text"
+                      id="rollNo"
+                      name="rollNo"
+                      value={userForm.rollNo}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
+                )}
+                <div className="form-group">
+                  <label htmlFor="status">Status</label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={userForm.status}
+                    onChange={handleFormChange}
+                    required
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="save-button">Create User</button>
+                <button type="button" onClick={() => setShowAddUser(false)} className="cancel-button">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditUser && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Edit User</h3>
+            <form onSubmit={handleUpdateUser}>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="fullName">Name</label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    value={userForm.fullName}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={userForm.email}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="mobileNo">Mobile</label>
+                  <input
+                    type="text"
+                    id="mobileNo"
+                    name="mobileNo"
+                    value={userForm.mobileNo}
+                    onChange={handleFormChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="role">Role</label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={userForm.role}
+                    onChange={handleFormChange}
+                    required
+                  >
+                    <option value="student">Student</option>
+                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                {userForm.role === 'student' && (
+                  <div className="form-group">
+                    <label htmlFor="rollNo">Roll Number</label>
+                    <input
+                      type="text"
+                      id="rollNo"
+                      name="rollNo"
+                      value={userForm.rollNo}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
+                )}
+                <div className="form-group">
+                  <label htmlFor="status">Status</label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={userForm.status}
+                    onChange={handleFormChange}
+                    required
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="save-button">Save Changes</button>
+                <button type="button" onClick={cancelEdit} className="cancel-button">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="loading">Loading users...</div>
@@ -246,283 +463,128 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
                 <th>
                   <input
                     type="checkbox"
-                    checked={selectedUsers.length === users.length}
+                    checked={selectedUsers.length === users.length && users.length > 0}
                     onChange={handleSelectAll}
                   />
                 </th>
-                <th onClick={() => sortUsers('name')}>
-                  Name
-                  {sortConfig.key === 'name' && (
-                    <span className="sort-indicator">
-                      {sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}
-                    </span>
-                  )}
+                <th onClick={() => sortUsers('fullName')}>
+                  Name {sortConfig.key === 'fullName' && (sortConfig.direction === 'asc' ? ' ↑' : ' ↓')}
                 </th>
                 <th onClick={() => sortUsers('email')}>
-                  Email
-                  {sortConfig.key === 'email' && (
-                    <span className="sort-indicator">
-                      {sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}
-                    </span>
-                  )}
+                  Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? ' ↑' : ' ↓')}
                 </th>
                 <th onClick={() => sortUsers('role')}>
-                  Role
-                  {sortConfig.key === 'role' && (
-                    <span className="sort-indicator">
-                      {sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}
-                    </span>
-                  )}
+                  Role {sortConfig.key === 'role' && (sortConfig.direction === 'asc' ? ' ↑' : ' ↓')}
                 </th>
                 <th onClick={() => sortUsers('status')}>
-                  Status
-                  {sortConfig.key === 'status' && (
-                    <span className="sort-indicator">
-                      {sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}
-                    </span>
-                  )}
+                  Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? ' ↑' : ' ↓')}
                 </th>
                 <th onClick={() => sortUsers('createdAt')}>
-                  Created
-                  {sortConfig.key === 'createdAt' && (
-                    <span className="sort-indicator">
-                      {sortConfig.direction === 'asc' ? ' ↑' : ' ↓'}
-                    </span>
-                  )}
+                  Created {sortConfig.key === 'createdAt' && (sortConfig.direction === 'asc' ? ' ↑' : ' ↓')}
                 </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map(user => (
-                <React.Fragment key={user._id}>
-                  <tr className={`user-row ${user.status}`}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.includes(user._id)}
-                        onChange={() => handleSelectUser(user._id)}
-                      />
-                    </td>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <span className={`role-badge ${user.role}`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${user.status}`}>
-                        {user.status}
-                      </span>
-                    </td>
-                    <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                    <td className="action-buttons">
-                      <button 
-                        onClick={() => toggleUserDetails(user._id)} 
-                        className="details-button"
-                      >
-                        {activeUserId === user._id ? 'Hide' : 'View'}
-                      </button>
-                      <button 
-                        onClick={() => startEditUser(user)} 
-                        className="edit-button"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteUser(user._id)} 
-                        className="delete-button"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                  {activeUserId === user._id && !editingUser && (
-                    <tr className="details-row">
-                      <td colSpan="7">
-                        <div className="user-details">
-                          <div className="detail-section">
-                            <h4>User Information</h4>
-                            <div className="detail-grid">
-                              <div>
-                                <p><strong>ID:</strong> {user._id}</p>
-                                <p><strong>Name:</strong> {user.name}</p>
-                                <p><strong>Email:</strong> {user.email}</p>
-                              </div>
-                              <div>
-                                <p><strong>Phone:</strong> {user.phone || 'Not provided'}</p>
-                                <p><strong>Role:</strong> {user.role}</p>
-                                <p><strong>Status:</strong> {user.status}</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {user.role === 'student' && user.studentInfo && (
-                            <div className="detail-section">
-                              <h4>Student Information</h4>
-                              <div className="detail-grid">
-                                <div>
-                                  <p><strong>Roll Number:</strong> {user.studentInfo.rollNumber}</p>
-                                  <p><strong>Department:</strong> {user.studentInfo.department}</p>
-                                  <p><strong>Year:</strong> {user.studentInfo.year}</p>
-                                </div>
-                                <div>
-                                  <p><strong>GPA:</strong> {user.studentInfo.gpa}</p>
-                                  <p><strong>Graduation Year:</strong> {user.studentInfo.graduationYear}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {user.role === 'employee' && user.employeeInfo && (
-                            <div className="detail-section">
-                              <h4>Employee Information</h4>
-                              <div className="detail-grid">
-                                <div>
-                                  <p><strong>Employee ID:</strong> {user.employeeInfo.employeeId}</p>
-                                  <p><strong>Department:</strong> {user.employeeInfo.department}</p>
-                                </div>
-                                <div>
-                                  <p><strong>Position:</strong> {user.employeeInfo.position}</p>
-                                  <p><strong>Join Date:</strong> {new Date(user.employeeInfo.joinDate).toLocaleDateString()}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {user.role === 'employer' && user.employerInfo && (
-                            <div className="detail-section">
-                              <h4>Employer Information</h4>
-                              <div className="detail-grid">
-                                <div>
-                                  <p><strong>Company:</strong> {user.employerInfo.companyName}</p>
-                                  <p><strong>Industry:</strong> {user.employerInfo.industry}</p>
-                                </div>
-                                <div>
-                                  <p><strong>Position:</strong> {user.employerInfo.position}</p>
-                                  <p><strong>Verified:</strong> {user.employerInfo.isVerified ? 'Yes' : 'No'}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="detail-section">
-                            <h4>Activity</h4>
-                            <div className="detail-grid">
-                              <div>
-                                <p><strong>Created:</strong> {new Date(user.createdAt).toLocaleString()}</p>
-                                <p><strong>Last Login:</strong> {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}</p>
-                              </div>
-                              <div>
-                                <p><strong>Last Updated:</strong> {new Date(user.updatedAt).toLocaleString()}</p>
-                                <p><strong>Login Count:</strong> {user.loginCount || 0}</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="role-change-section">
-                            <h4>Change Role</h4>
-                            <div className="role-buttons">
-                              <button 
-                                onClick={() => handleChangeRole(user._id, 'student')}
-                                className={`role-button ${user.role === 'student' ? 'active' : ''}`}
-                                disabled={user.role === 'student'}
-                              >
-                                Student
-                              </button>
-                              <button 
-                                onClick={() => handleChangeRole(user._id, 'employee')}
-                                className={`role-button ${user.role === 'employee' ? 'active' : ''}`}
-                                disabled={user.role === 'employee'}
-                              >
-                                Employee
-                              </button>
-                              <button 
-                                onClick={() => handleChangeRole(user._id, 'employer')}
-                                className={`role-button ${user.role === 'employer' ? 'active' : ''}`}
-                                disabled={user.role === 'employer'}
-                              >
-                                Employer
-                              </button>
-                              <button 
-                                onClick={() => handleChangeRole(user._id, 'admin')}
-                                className={`role-button ${user.role === 'admin' ? 'active' : ''}`}
-                                disabled={user.role === 'admin'}
-                              >
-                                Admin
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                  {editingUser === user._id && (
-                    <tr className="details-row">
-                      <td colSpan="7">
-                        <form onSubmit={(e) => handleFormSubmit(e, user._id)} className="edit-form">
-                          <h4>Edit User</h4>
-                          <div className="form-grid">
-                            <div className="form-group">
-                              <label htmlFor="name">Name</label>
-                              <input
-                                type="text"
-                                id="name"
-                                name="name"
-                                value={userForm.name}
-                                onChange={handleFormChange}
-                                required
-                              />
-                            </div>
-                            <div className="form-group">
-                              <label htmlFor="email">Email</label>
-                              <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={userForm.email}
-                                onChange={handleFormChange}
-                                required
-                              />
-                            </div>
-                            <div className="form-group">
-                              <label htmlFor="phone">Phone</label>
-                              <input
-                                type="text"
-                                id="phone"
-                                name="phone"
-                                value={userForm.phone}
-                                onChange={handleFormChange}
-                              />
-                            </div>
-                            <div className="form-group">
-                              <label htmlFor="status">Status</label>
-                              <select
-                                id="status"
-                                name="status"
-                                value={userForm.status}
-                                onChange={handleFormChange}
-                                required
-                              >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="suspended">Suspended</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="form-actions">
-                            <button type="submit" className="save-button">Save Changes</button>
-                            <button type="button" onClick={cancelEdit} className="cancel-button">Cancel</button>
-                          </div>
-                        </form>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
+                <tr key={user._id} className={`user-row ${user.status || 'active'}`}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user._id)}
+                      onChange={() => handleSelectUser(user._id)}
+                    />
+                  </td>
+                  <td>{user.fullName}</td>
+                  <td>{user.email}</td>
+                  <td><span className={`role-badge ${user.role}`}>{user.role}</span></td>
+                  <td><span className={`status-badge ${user.status || 'active'}`}>{user.status || 'active'}</span></td>
+                  <td>{formatDate(user.createdAt)}</td>
+                  <td className="action-buttons">
+                    <button onClick={() => openUserModal(user)} className="details-button">View</button>
+                    <button onClick={() => startEditUser(user)} className="edit-button">Edit</button>
+                    <button onClick={() => handleDeleteUser(user._id)} className="delete-button">Delete</button>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {modalUser && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>User Details</h3>
+            <div className="user-details">
+              <div className="detail-section">
+                <h4>User Information</h4>
+                <div className="detail-grid">
+                  <div>
+                    <p><strong>ID:</strong> {modalUser._id}</p>
+                    <p><strong>Name:</strong> {modalUser.fullName}</p>
+                    <p><strong>Email:</strong> {modalUser.email}</p>
+                  </div>
+                  <div>
+                    <p><strong>Mobile:</strong> {modalUser.mobileNo || 'Not provided'}</p>
+                    <p><strong>Role:</strong> {modalUser.role}</p>
+                    <p><strong>Status:</strong> {modalUser.status || 'active'}</p>
+                  </div>
+                </div>
+              </div>
+              {modalUser.role === 'student' && (
+                <div className="detail-section">
+                  <h4>Student Information</h4>
+                  <div className="detail-grid">
+                    <div>
+                      <p><strong>Roll Number:</strong> {modalUser.rollNo || 'Not provided'}</p>
+                      <p><strong>WhatsApp:</strong> {modalUser.whatsappNo || 'Not provided'}</p>
+                      <p><strong>School:</strong> {modalUser.school || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <p><strong>Course Aggregate:</strong> {modalUser.courseAggregate || 'Not provided'}</p>
+                      <p><strong>Ready to Relocate:</strong> {modalUser.readyToRelocate ? 'Yes' : 'No'}</p>
+                      <p><strong>Area of Interest:</strong> {modalUser.areaOfInterest || 'Not provided'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="detail-section">
+                <h4>Activity</h4>
+                <div className="detail-grid">
+                  <div><p><strong>Created:</strong> {new Date(modalUser.createdAt).toLocaleString() || 'Not available'}</p></div>
+                  <div><p><strong>Last Updated:</strong> {new Date(modalUser.updatedAt).toLocaleString() || 'Not available'}</p></div>
+                </div>
+              </div>
+              <div className="role-change-section">
+                <h4>Change Role</h4>
+                <div className="role-buttons">
+                  <button 
+                    onClick={() => handleChangeRole(modalUser._id, 'student')}
+                    className={`role-button ${modalUser.role === 'student' ? 'active' : ''}`}
+                    disabled={modalUser.role === 'student'}
+                  >
+                    Student
+                  </button>
+                  <button 
+                    onClick={() => handleChangeRole(modalUser._id, 'staff')}
+                    className={`role-button ${modalUser.role === 'staff' ? 'active' : ''}`}
+                    disabled={modalUser.role === 'staff'}
+                  >
+                    Staff
+                  </button>
+                  <button 
+                    onClick={() => handleChangeRole(modalUser._id, 'admin')}
+                    className={`role-button ${modalUser.role === 'admin' ? 'active' : ''}`}
+                    disabled={modalUser.role === 'admin'}
+                  >
+                    Admin
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button onClick={closeUserModal} className="close-button">Close</button>
+          </div>
         </div>
       )}
     </div>

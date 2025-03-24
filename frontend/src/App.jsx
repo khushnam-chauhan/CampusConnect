@@ -156,9 +156,7 @@ function App() {
         <Route 
           path="/post-job" 
           element={
-            <ProtectedRoute allowedRoles={['admin', 'staff']}>
               <JobPostForm />
-            </ProtectedRoute>
           } 
         />
 

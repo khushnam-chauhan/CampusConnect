@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (userRole === 'student') {
       return <Navigate to="/dashboard" replace />;
     }
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
   
   return children;

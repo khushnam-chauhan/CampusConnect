@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import "./AdminJobs.css";
+import AdminJobForm from "./AdminJobForm"; // Import the new component
 
 const AdminJobManagement = () => {
   const [jobs, setJobs] = useState([]);
@@ -11,6 +12,7 @@ const AdminJobManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [formMode, setFormMode] = useState("create");
   const [sortConfig, setSortConfig] = useState({ key: "createdAt", direction: "desc" });
+  const [currentJob, setCurrentJob] = useState(null);
   
   const [filters, setFilters] = useState({
     status: "all",
@@ -21,31 +23,6 @@ const AdminJobManagement = () => {
     skills: "",
     category: "",
     companyName: ""
-  });
-
-  // Form data state for job creation/editing
-  const [formData, setFormData] = useState({
-    companyName: "",
-    officeAddress: "",
-    website: "",
-    yearOfEstablishment: "",
-    contactPersonName: "",
-    contactNumber: "",
-    email: "",
-    profiles: "",
-    eligibility: "",
-    vacancies: "",
-    offerType: "Full time Employment",
-    ctcOrStipend: "",
-    location: "",
-    resultDeclaration: "Same day",
-    dateOfJoining: "",
-    reference: "Self",
-    skills: [],
-    category: [],
-    jobDescription: "",
-    additionalInfo: "",
-    status: "pending"
   });
 
   // Debounce function for search/filter
@@ -283,117 +260,32 @@ const AdminJobManagement = () => {
     setActiveJobId(activeJobId === jobId ? null : jobId);
   };
 
-  // Form handling for create/edit modal
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === "skills" || name === "category") {
-      setFormData({
-        ...formData,
-        [name]: typeof value === "string" ? 
-          value.split(",").map(item => item.trim()) : 
-          value
-      });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
   // Modal controls
   const openCreateModal = () => {
-    setFormData({
-      companyName: "",
-      officeAddress: "",
-      website: "",
-      yearOfEstablishment: "",
-      contactPersonName: "",
-      contactNumber: "",
-      email: "",
-      profiles: "",
-      eligibility: "",
-      vacancies: "",
-      offerType: "Full time Employment",
-      ctcOrStipend: "",
-      location: "",
-      resultDeclaration: "Same day",
-      dateOfJoining: "",
-      reference: "Self",
-      skills: [],
-      category: [],
-      jobDescription: "",
-      additionalInfo: "",
-      status: "pending"
-    });
+    setCurrentJob(null);
     setFormMode("create");
     setModalOpen(true);
   };
 
   const openEditModal = (job) => {
-    // Format date for the input
-    const formattedDate = job.dateOfJoining ? 
-      new Date(job.dateOfJoining).toISOString().split("T")[0] : "";
-    
-    setFormData({
-      ...job,
-      dateOfJoining: formattedDate,
-      skills: job.skills || [],
-      category: job.category || []
-    });
+    setCurrentJob(job);
     setFormMode("edit");
     setModalOpen(true);
   };
 
-  const closeModal = () => setModalOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
+    setCurrentJob(null);
+  };
 
-  // Form submission for create/edit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const token = localStorage.getItem("token");
-      
-      const formattedData = {
-        ...formData,
-        skills: Array.isArray(formData.skills) 
-          ? formData.skills 
-          : formData.skills.split(',').map(skill => skill.trim()),
-        category: Array.isArray(formData.category) 
-          ? formData.category 
-          : formData.category.split(',').map(cat => cat.trim())
-      };
-      
-      if (formMode === "create") {
-        const response = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/jobs`, 
-          formattedData,
-          { headers: { 
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}` 
-            }
-          }
-        );
-        
-        setJobs([response.data.data, ...jobs]);
-      } else {
-        const response = await axios.put(
-          `${import.meta.env.VITE_BACKEND_URL}/jobs/${formData._id}`, 
-          formattedData,
-          { headers: { 
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}` 
-            }
-          }
-        );
-        
-        setJobs(jobs.map(job => job._id === formData._id ? response.data.data : job));
-      }
-      
-      closeModal();
-      setError(null);
-    } catch (err) {
-      setError(`Failed to ${formMode === "create" ? "create" : "update"} job: ${err.response?.data?.message || err.message}`);
-      console.error(`Error ${formMode === "create" ? "creating" : "updating"} job:`, err);
+  // Handle form submission results
+  const handleFormSubmit = (jobData, mode) => {
+    if (mode === "create") {
+      setJobs([jobData, ...jobs]);
+    } else {
+      setJobs(jobs.map(job => job._id === jobData._id ? jobData : job));
     }
+    closeModal();
   };
 
   return (
@@ -747,313 +639,12 @@ const AdminJobManagement = () => {
                 <button className="close-button" onClick={closeModal}>×</button>
               </div>
               
-              <form onSubmit={handleSubmit} className="job-form">
-                <div className="form-grid">
-                  <div className="form-section">
-                    <h3>Company Information</h3>
-                    
-                    <div className="form-group">
-                      <label htmlFor="companyName">Company Name *</label>
-                      <input
-                        type="text"
-                        id="companyName"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="officeAddress">Office Address *</label>
-                      <input
-                        type="text"
-                        id="officeAddress"
-                        name="officeAddress"
-                        value={formData.officeAddress}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="website">Website *</label>
-                      <input
-                        type="url"
-                        id="website"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="yearOfEstablishment">Year Established *</label>
-                      <input
-                        type="number"
-                        id="yearOfEstablishment"
-                        name="yearOfEstablishment"
-                        value={formData.yearOfEstablishment}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="form-section">
-                    <h3>Contact Information</h3>
-                    
-                    <div className="form-group">
-                      <label htmlFor="contactPersonName">Contact Person *</label>
-                      <input
-                        type="text"
-                        id="contactPersonName"
-                        name="contactPersonName"
-                        value={formData.contactPersonName}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="contactNumber">Contact Number *</label>
-                      <input
-                        type="tel"
-                        id="contactNumber"
-                        name="contactNumber"
-                        value={formData.contactNumber}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="email">Email *</label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="reference">Reference *</label>
-                      <select
-                        id="reference"
-                        name="reference"
-                        value={formData.reference}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="Self">Self</option>
-                        <option value="Dr. Vibha Thakur">Dr. Vibha Thakur</option>
-                        <option value="Ms. Shruti Bansal">Ms. Shruti Bansal</option>
-                        <option value="Ms. Mansi Shrivastava">Ms. Mansi Shrivastava</option>
-                        <option value="Ms. Charu Gola">Ms. Charu Gola</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="form-section">
-                    <h3>Job Details</h3>
-                    
-                    <div className="form-group">
-                      <label htmlFor="profiles">Profiles *</label>
-                      <input
-                        type="text"
-                        id="profiles"
-                        name="profiles"
-                        value={formData.profiles}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="eligibility">Eligibility *</label>
-                      <input
-                        type="text"
-                        id="eligibility"
-                        name="eligibility"
-                        value={formData.eligibility}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="vacancies">Vacancies *</label>
-                      <input
-                        type="number"
-                        id="vacancies"
-                        name="vacancies"
-                        value={formData.vacancies}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="offerType">Offer Type *</label>
-                      <select
-                        id="offerType"
-                        name="offerType"
-                        value={formData.offerType}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="Full time Employment">Full time Employment</option>
-                        <option value="Internship + PPO">Internship + PPO</option>
-                        <option value="Apprenticeship">Apprenticeship</option>
-                        <option value="Summer Internship">Summer Internship</option>
-                      </select>
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="ctcOrStipend">CTC/Stipend *</label>
-                      <input
-                        type="text"
-                        id="ctcOrStipend"
-                        name="ctcOrStipend"
-                        value={formData.ctcOrStipend}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="form-section">
-                    <h3>Location & Dates</h3>
-                    
-                    <div className="form-group">
-                      <label htmlFor="location">Location *</label>
-                      <input
-                        type="text"
-                        id="location"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="resultDeclaration">Result Declaration *</label>
-                      <select
-                        id="resultDeclaration"
-                        name="resultDeclaration"
-                        value={formData.resultDeclaration}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="Same day">Same day</option>
-                        <option value="With in a week">Within a week</option>
-                      </select>
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="dateOfJoining">Date of Joining *</label>
-                      <input
-                        type="date"
-                        id="dateOfJoining"
-                        name="dateOfJoining"
-                        value={formData.dateOfJoining}
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="form-section">
-                    <h3>Skills & Categories</h3>
-                    
-                    <div className="form-group">
-                      <label htmlFor="skills">Skills (comma separated) *</label>
-                      <input
-                        type="text"
-                        id="skills"
-                        name="skills"
-                        value={Array.isArray(formData.skills) ? formData.skills.join(", ") : formData.skills}
-                        onChange={handleInputChange}
-                        placeholder="e.g. React, Node.js, MongoDB"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="category">Categories (comma separated) *</label>
-                      <input
-                        type="text"
-                        id="category"
-                        name="category"
-                        value={Array.isArray(formData.category) ? formData.category.join(", ") : formData.category}
-                        onChange={handleInputChange}
-                        placeholder="e.g. IT, Software Development, Marketing"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="form-section full-width">
-                    <h3>Job Description</h3>
-                    
-                    <div className="form-group">
-                      <label htmlFor="jobDescription">Job Description *</label>
-                      <textarea
-                        id="jobDescription"
-                        name="jobDescription"
-                        value={formData.jobDescription}
-                        onChange={handleInputChange}
-                        rows="5"
-                        required
-                      ></textarea>
-                    </div>
-                    
-                    <div className="form-group">
-                      <label htmlFor="additionalInfo">Additional Information</label>
-                      <textarea
-                        id="additionalInfo"
-                        name="additionalInfo"
-                        value={formData.additionalInfo}
-                        onChange={handleInputChange}
-                        rows="3"
-                      ></textarea>
-                    </div>
-                  </div>
-                  
-                  {formMode === "edit" && (
-                    <div className="form-section">
-                      <h3>Status</h3>
-                      <div className="form-group">
-                        <label htmlFor="status">Status *</label>
-                        <select
-                          id="status"
-                          name="status"
-                          value={formData.status}
-                          onChange={handleInputChange}
-                          required
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="approved">Approved</option>
-                          <option value="rejected">Rejected</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="form-actions">
-                  <button type="button" onClick={closeModal} className="cancel-button">
-                    Cancel
-                  </button>
-                  <button type="submit" className="submit-button">
-                    {formMode === "create" ? "Create Job" : "Update Job"}
-                  </button>
-                </div>
-              </form>
+              <AdminJobForm 
+                formMode={formMode}
+                initialData={currentJob}
+                onSubmit={handleFormSubmit}
+                onCancel={closeModal}
+              />
             </div>
           </div>
         )}

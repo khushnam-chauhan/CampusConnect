@@ -318,56 +318,65 @@ const JobPostForm = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    // Add any skills in the input field before submission
+    e.preventDefault();
+  
     if (skillInput.trim()) {
-      // Process the skills immediately instead of calling handleAddSkills
-      // which would cause a state update that doesn't complete before validation
       const newSkills = skillInput
         .split(",")
         .map((skill) => skill.trim())
-        .filter((skill) => skill.length > 0)
-
-      // Filter out duplicates and add to current skills
-      const uniqueNewSkills = newSkills.filter((skill) => !formData.skills.includes(skill))
-
+        .filter((skill) => skill.length > 0);
+      const uniqueNewSkills = newSkills.filter((skill) => !formData.skills.includes(skill));
       if (uniqueNewSkills.length > 0) {
-        // Update formData directly for immediate validation
-        formData.skills = [...formData.skills, ...uniqueNewSkills]
+        formData.skills = [...formData.skills, ...uniqueNewSkills];
       }
-
-      setSkillInput("")
+      setSkillInput("");
     }
-
+  
     if (!validateForm()) {
-      return
+      return;
     }
-
-    setIsSubmitting(true)
-    setSubmitMessage("")
-
+  
+    setIsSubmitting(true);
+    setSubmitMessage("");
+  
     try {
       const processedData = {
-        ...formData,
-        vacancies: Number.parseInt(formData.vacancies),
+        companyName: formData.companyName,
+        officeAddress: formData.officeAddress,
+        website: formData.website,
         yearOfEstablishment: Number.parseInt(formData.yearOfEstablishment),
-        // Use the first selected offer type for the backend
-        offerType: formData.offerType[0],
-      }
-
+        contactPersonName: formData.contactPersonName,
+        contactNumber: formData.contactNumber,
+        email: formData.email,
+        profiles: formData.profiles,
+        eligibility: formData.eligibility,
+        vacancies: Number.parseInt(formData.vacancies),
+        offerType: formData.offerType, // Array, e.g., ["Full time Employment", "Internship + PPO"]
+        ctcOrStipend: formData.ctcOrStipend,
+        location: formData.location,
+        resultDeclaration: formData.resultDeclaration,
+        dateOfJoining: formData.dateOfJoining,
+        reference: formData.reference,
+        jobDescription: formData.jobDescription,
+        companyLogo: formData.companyLogo,
+        additionalInfo: formData.additionalInfo,
+        skills: formData.skills,
+        category: formData.category,
+      };
+  
+  
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/jobs`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(processedData),
-      })
-
-      const result = await response.json()
-
+      });
+  
+      const result = await response.json();
+  
       if (response.ok) {
-        setSubmitMessage("Job posting submitted successfully and awaiting admin approval")
+        setSubmitMessage("Job posting submitted successfully and awaiting admin approval");
         setFormData({
           companyName: "",
           officeAddress: "",
@@ -379,7 +388,7 @@ const JobPostForm = () => {
           profiles: "",
           eligibility: "",
           vacancies: 1,
-          offerType: [],
+          offerType: [], // Reset to empty array
           ctcOrStipend: "",
           location: "",
           resultDeclaration: "Same day",
@@ -390,18 +399,19 @@ const JobPostForm = () => {
           additionalInfo: "",
           skills: [],
           category: [],
-        })
-        setSkillInput("")
-        setCategoryInput("")
+        });
+        setSkillInput("");
+        setCategoryInput("");
       } else {
-        throw new Error(result.message || "Failed to submit job posting")
+        throw new Error(result.message || "Failed to submit job posting");
       }
     } catch (error) {
-      setSubmitMessage(`Error: ${error.message}`)
+      setSubmitMessage(`Error: ${error.message}`);
+      console.error("Submission error:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -730,20 +740,20 @@ const JobPostForm = () => {
             </div>
 
             <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="resultDeclaration">Result Declaration *</label>
-                <select
-                  id="resultDeclaration"
-                  name="resultDeclaration"
-                  value={formData.resultDeclaration}
-                  onChange={handleChange}
-                  className={errors.resultDeclaration ? "error" : ""}
-                >
-                  <option value="Same day">Same day</option>
-                  <option value="With in a week">Within a week</option>
-                </select>
-                {errors.resultDeclaration && <span className="error-message">{errors.resultDeclaration}</span>}
-              </div>
+            <div className="form-group">
+  <label htmlFor="resultDeclaration">Result Declaration *</label>
+  <select
+    id="resultDeclaration"
+    name="resultDeclaration"
+    value={formData.resultDeclaration}
+    onChange={handleChange}
+    className={errors.resultDeclaration ? "error" : ""}
+  >
+    <option value="Same day">Same day</option>
+    <option value="Within a week">Within a week</option>
+  </select>
+  {errors.resultDeclaration && <span className="error-message">{errors.resultDeclaration}</span>}
+</div>
 
               <div className="form-group">
                 <label htmlFor="dateOfJoining">Date of Joining *</label>

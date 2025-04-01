@@ -217,7 +217,7 @@ const AdminUserManagement = ({ fetchUsers, updateUser, deleteUser, changeUserRol
       
       {error && <div className="error-message">{error}</div>}
       
-      <div className="control-panel">
+      <div className="control-panel1">
         <div className="filter-controls">
           <label>
             Role:

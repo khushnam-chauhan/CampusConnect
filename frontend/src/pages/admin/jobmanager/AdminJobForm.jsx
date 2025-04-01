@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "./AdminJobs.css";
+import React, { useState, useEffect, useRef } from "react";
+import "./AdminJobForm.css";
 
 const AdminJobForm = ({ formMode, initialData, onSubmit, onCancel }) => {
-  // Form data state for job creation/editing
   const [formData, setFormData] = useState({
     companyName: "",
     officeAddress: "",
@@ -21,740 +19,262 @@ const AdminJobForm = ({ formMode, initialData, onSubmit, onCancel }) => {
     resultDeclaration: "Same day",
     dateOfJoining: "",
     reference: "Self",
-    skills: [],
-    category: [],
     jobDescription: "",
     companyLogo: "",
     additionalInfo: "",
-    status: "pending"
+    skills: [],
+    category: [],
   });
-  
-  const [errors, setErrors] = useState({});
-  const [error, setError] = useState(null);
+
   const [skillInput, setSkillInput] = useState("");
   const [categoryInput, setCategoryInput] = useState("");
-  
-  // Available offer types
-  const offerTypes = [
-    "Full time Employment", 
-    "Internship + PPO", 
-    "Apprenticeship", 
-    "Summer Internship"
-  ];
-  
-  // Common job categories
+  const [filteredCategories, setFilteredCategories] = useState([]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const categoryInputRef = useRef(null);
+  const dropdownRef = useRef(null);
+
   const jobCategories = [
-    "Software Development",
-    "Data Science",
-    "Product Management",
-    "Marketing",
-    "Sales",
-    "Finance",
-    "Operations",
-    "Human Resources",
-    "Customer Support",
-    "UI/UX Designer",
-    "Network Administrator",
-    "Database Administrator",
-    "DevOps Engineer",
-    "Business Intelligence Analyst",
-    "Frontend Developer",
-    "Backend Developer",
-    "Full Stack Developer",
-    "Mobile App Developer",
-    "QA Engineer",
-    "Project Manager",
-    "Other"
+    "Interaction Designer", "Network Administrator", "User Interface Designer", /* ...rest from JobPostForm */ "Other"
   ].sort();
 
-  // Initialize form with data when editing
   useEffect(() => {
     if (initialData && formMode === "edit") {
-      // Format date for the input
-      const formattedDate = initialData.dateOfJoining ? 
-        new Date(initialData.dateOfJoining).toISOString().split("T")[0] : "";
-      
-      // Handle offerType which might be a string or array
-      const offerTypeArray = Array.isArray(initialData.offerType) ? 
-        initialData.offerType : [initialData.offerType];
-      
-      setFormData({
-        ...initialData,
-        dateOfJoining: formattedDate,
-        skills: initialData.skills || [],
-        category: initialData.category || [],
-        offerType: offerTypeArray
-      });
+      setFormData({ ...initialData });
     }
   }, [initialData, formMode]);
 
-  // Form input handling
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    
     setFormData({ ...formData, [name]: value });
-    
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
   };
 
-  // Handle checkbox changes for offer type
   const handleOfferTypeChange = (e) => {
     const { value, checked } = e.target;
-
-    if (checked) {
-      setFormData({
-        ...formData,
-        offerType: [...formData.offerType, value]
-      });
-    } else {
-      setFormData({
-        ...formData,
-        offerType: formData.offerType.filter(type => type !== value)
-      });
-    }
-
-    // Clear error
-    if (errors.offerType) {
-      setErrors({ ...errors, offerType: "" });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      offerType: checked ? [...prev.offerType, value] : prev.offerType.filter((type) => type !== value),
+    }));
   };
 
-  // Handle skill input change
-  const handleSkillInputChange = (e) => {
-    setSkillInput(e.target.value);
-  };
+  const handleSkillInputChange = (e) => setSkillInput(e.target.value);
 
-  // Add skills - processes comma-separated input
   const handleAddSkills = () => {
     if (skillInput.trim()) {
-      // Split by comma and trim whitespace
-      const newSkills = skillInput
-        .split(",")
-        .map(skill => skill.trim())
-        .filter(skill => skill.length > 0);
-
-      // Filter out duplicates
-      const uniqueNewSkills = newSkills.filter(skill => !formData.skills.includes(skill));
-
-      if (uniqueNewSkills.length > 0) {
-        setFormData({
-          ...formData,
-          skills: [...formData.skills, ...uniqueNewSkills]
-        });
-
-        if (errors.skills) {
-          setErrors({ ...errors, skills: "" });
-        }
-      }
-
+      const newSkills = skillInput.split(",").map((skill) => skill.trim()).filter((skill) => skill);
+      setFormData((prev) => ({
+        ...prev,
+        skills: [...prev.skills, ...newSkills.filter((skill) => !prev.skills.includes(skill))],
+      }));
       setSkillInput("");
     }
   };
 
-  // Handle skill input keydown
-  const handleSkillInputKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddSkills();
-    }
+  const removeSkill = (skill) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((s) => s !== skill),
+    }));
   };
 
-  // Remove a skill
-  const removeSkill = (skillToRemove) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter(skill => skill !== skillToRemove)
-    });
-  };
-
-  // Handle category input change
   const handleCategoryInputChange = (e) => {
-    setCategoryInput(e.target.value);
-  };
-
-  // Add category
-  const handleAddCategory = () => {
-    if (categoryInput.trim()) {
-      const newCategories = categoryInput
-        .split(",")
-        .map(cat => cat.trim())
-        .filter(cat => cat.length > 0);
-
-      const uniqueNewCategories = newCategories.filter(cat => !formData.category.includes(cat));
-
-      if (uniqueNewCategories.length > 0) {
-        setFormData({
-          ...formData,
-          category: [...formData.category, ...uniqueNewCategories]
-        });
-
-        if (errors.category) {
-          setErrors({ ...errors, category: "" });
-        }
-      }
-
-      setCategoryInput("");
+    const value = e.target.value;
+    setCategoryInput(value);
+    if (value.trim()) {
+      const filtered = jobCategories.filter((cat) => cat.toLowerCase().includes(value.toLowerCase()));
+      setFilteredCategories(filtered);
+      setShowCategoryDropdown(true);
+    } else {
+      setShowCategoryDropdown(false);
     }
   };
 
-  // Handle category input keydown
-  const handleCategoryInputKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddCategory();
+  const addCategory = (category) => {
+    if (category.trim() && !formData.category.includes(category)) {
+      setFormData((prev) => ({ ...prev, category: [...prev.category, category] }));
     }
+    setCategoryInput("");
+    setShowCategoryDropdown(false);
   };
 
-  // Remove a category
-  const removeCategory = (categoryToRemove) => {
-    setFormData({
-      ...formData,
-      category: formData.category.filter(cat => cat !== categoryToRemove)
-    });
+  const removeCategory = (category) => {
+    setFormData((prev) => ({
+      ...prev,
+      category: prev.category.filter((c) => c !== category),
+    }));
   };
 
-  // Form validation
-  const validateForm = () => {
-    const newErrors = {};
-    const requiredFields = [
-      "companyName",
-      "officeAddress",
-      "website",
-      "yearOfEstablishment",
-      "contactPersonName",
-      "contactNumber",
-      "email",
-      "profiles",
-      "eligibility",
-      "vacancies",
-      "ctcOrStipend",
-      "location",
-      "resultDeclaration",
-      "dateOfJoining",
-      "reference",
-      "jobDescription"
-    ];
-
-    requiredFields.forEach(field => {
-      if (!formData[field]) {
-        newErrors[field] = "This field is required";
-      }
-    });
-
-    // Validate offerType
-    if (formData.offerType.length === 0) {
-      newErrors.offerType = "Please select at least one offer type";
-    }
-
-    // Validate skills
-    if (formData.skills.length === 0) {
-      newErrors.skills = "Please add at least one skill";
-    }
-
-    // Validate category
-    if (formData.category.length === 0) {
-      newErrors.category = "Please select at least one category";
-    }
-
-    // Validate email
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    // Validate year of establishment
-    if (
-      formData.yearOfEstablishment &&
-      (isNaN(formData.yearOfEstablishment) ||
-        formData.yearOfEstablishment < 1800 ||
-        formData.yearOfEstablishment > new Date().getFullYear())
-    ) {
-      newErrors.yearOfEstablishment = "Please enter a valid year";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Process any skills in the input field
-    if (skillInput.trim()) {
-      const newSkills = skillInput
-        .split(",")
-        .map(skill => skill.trim())
-        .filter(skill => skill.length > 0);
-
-      const uniqueNewSkills = newSkills.filter(skill => !formData.skills.includes(skill));
-
-      if (uniqueNewSkills.length > 0) {
-        formData.skills = [...formData.skills, ...uniqueNewSkills];
-      }
-      setSkillInput("");
-    }
-
-    // Process any categories in the input field
-    if (categoryInput.trim()) {
-      const newCategories = categoryInput
-        .split(",")
-        .map(cat => cat.trim())
-        .filter(cat => cat.length > 0);
-
-      const uniqueNewCategories = newCategories.filter(cat => !formData.category.includes(cat));
-
-      if (uniqueNewCategories.length > 0) {
-        formData.category = [...formData.category, ...uniqueNewCategories];
-      }
-      setCategoryInput("");
-    }
-
-    if (!validateForm()) {
-      return;
-    }
-    
-    try {
-      const token = localStorage.getItem("token");
-      
-      const processedData = {
-        ...formData,
-        vacancies: Number.parseInt(formData.vacancies),
-        yearOfEstablishment: Number.parseInt(formData.yearOfEstablishment),
-        // Use the first selected offer type for the backend
-        offerType: formData.offerType[0]
-      };
-      
-      if (formMode === "create") {
-        const response = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/jobs`, 
-          processedData,
-          { headers: { 
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}` 
-            }
-          }
-        );
-        
-        onSubmit(response.data.data, "create");
-      } else {
-        const response = await axios.put(
-          `${import.meta.env.VITE_BACKEND_URL}/jobs/${formData._id}`, 
-          processedData,
-          { headers: { 
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}` 
-            }
-          }
-        );
-        
-        onSubmit(response.data.data, "edit");
-      }
-      
-      setError(null);
-    } catch (err) {
-      setError(`Failed to ${formMode === "create" ? "create" : "update"} job: ${err.response?.data?.message || err.message}`);
-      console.error(`Error ${formMode === "create" ? "creating" : "updating"} job:`, err);
-    }
+    if (skillInput.trim()) handleAddSkills();
+    onSubmit(formData);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+        categoryInputRef.current && !categoryInputRef.current.contains(event.target)
+      ) {
+        setShowCategoryDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className="admin-job-form-container">
-      
-      {error && <div className="error-message">{error}</div>}
-      
-      <form onSubmit={handleSubmit} className="job-form">
-        <div className="form-section">
-          <h3>Company Information</h3>
-          
-          <div className="form-group">
-            <label htmlFor="companyName">Company Name *</label>
-            <input
-              type="text"
-              id="companyName"
-              name="companyName"
-              value={formData.companyName}
-              onChange={handleInputChange}
-              className={errors.companyName ? "error" : ""}
-            />
-            {errors.companyName && <span className="error-message">{errors.companyName}</span>}
+    <div className="job-description__body2">
+      <div className="jd-layout">
+        <div className="job-description__details2">
+          <div className="job-info2">
+            <span>Company Name:</span>
+            <input name="companyName" value={formData.companyName} onChange={handleChange} />
           </div>
-          
-          <div className="form-group">
-            <label htmlFor="officeAddress">Office Address *</label>
-            <input
-              type="text"
-              id="officeAddress"
-              name="officeAddress"
-              value={formData.officeAddress}
-              onChange={handleInputChange}
-              className={errors.officeAddress ? "error" : ""}
-            />
-            {errors.officeAddress && <span className="error-message">{errors.officeAddress}</span>}
+          <div className="job-info2">
+            <span>Office Address:</span>
+            <input name="officeAddress" value={formData.officeAddress} onChange={handleChange} />
           </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="website">Website *</label>
-              <input
-                type="url"
-                id="website"
-                name="website"
-                value={formData.website}
-                onChange={handleInputChange}
-                className={errors.website ? "error" : ""}
-                placeholder="https://example.com"
-              />
-              {errors.website && <span className="error-message">{errors.website}</span>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="yearOfEstablishment">Year Established *</label>
-              <input
-                type="number"
-                id="yearOfEstablishment"
-                name="yearOfEstablishment"
-                value={formData.yearOfEstablishment}
-                onChange={handleInputChange}
-                className={errors.yearOfEstablishment ? "error" : ""}
-                min="1800"
-                max={new Date().getFullYear()}
-              />
-              {errors.yearOfEstablishment && <span className="error-message">{errors.yearOfEstablishment}</span>}
-            </div>
+          <div className="job-info2">
+            <span>Website:</span>
+            <input name="website" value={formData.website} onChange={handleChange} />
           </div>
-          
-          <div className="form-group">
-            <label htmlFor="companyLogo">Company Logo URL</label>
-            <input
-              type="text"
-              id="companyLogo"
-              name="companyLogo"
-              value={formData.companyLogo}
-              onChange={handleInputChange}
-              placeholder="https://example.com/logo.png"
-            />
+          <div className="job-info2">
+            <span>Year of Establishment:</span>
+            <input name="yearOfEstablishment" value={formData.yearOfEstablishment} onChange={handleChange} type="number" />
           </div>
         </div>
-        
-        <div className="form-section">
-          <h3>Contact Information</h3>
-          
-          <div className="form-group">
-            <label htmlFor="contactPersonName">Contact Person *</label>
-            <input
-              type="text"
-              id="contactPersonName"
-              name="contactPersonName"
-              value={formData.contactPersonName}
-              onChange={handleInputChange}
-              className={errors.contactPersonName ? "error" : ""}
-            />
-            {errors.contactPersonName && <span className="error-message">{errors.contactPersonName}</span>}
+        <div className="job-description__details2">
+          <div className="job-info2">
+            <span>Contact Person:</span>
+            <input name="contactPersonName" value={formData.contactPersonName} onChange={handleChange} />
           </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="contactNumber">Contact Number *</label>
-              <input
-                type="tel"
-                id="contactNumber"
-                name="contactNumber"
-                value={formData.contactNumber}
-                onChange={handleInputChange}
-                className={errors.contactNumber ? "error" : ""}
-              />
-              {errors.contactNumber && <span className="error-message">{errors.contactNumber}</span>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="email">Email *</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={errors.email ? "error" : ""}
-              />
-              {errors.email && <span className="error-message">{errors.email}</span>}
-            </div>
+          <div className="job-info2">
+            <span>Contact Number:</span>
+            <input name="contactNumber" value={formData.contactNumber} onChange={handleChange} />
           </div>
-          
-          <div className="form-group">
-          <label htmlFor="reference">Reference *</label>
-            <select
-              id="reference"
-              name="reference"
-              value={formData.reference}
-              onChange={handleInputChange}
-              className={errors.reference ? "error" : ""}
-            >
+          <div className="job-info2">
+            <span>Email:</span>
+            <input name="email" value={formData.email} onChange={handleChange} />
+          </div>
+          <div className="job-info2">
+            <span>Company Logo URL:</span>
+            <input name="companyLogo" value={formData.companyLogo} onChange={handleChange} />
+          </div>
+        </div>
+      </div>
+      <div className="jd-layout">
+        <div className="job-description__details2">
+          <div className="job-info2">
+            <span>CTC/Stipend:</span>
+            <input name="ctcOrStipend" value={formData.ctcOrStipend} onChange={handleChange} />
+          </div>
+          <div className="job-info2">
+            <span>Location:</span>
+            <input name="location" value={formData.location} onChange={handleChange} />
+          </div>
+          <div className="job-info2">
+            <span>Vacancies:</span>
+            <input name="vacancies" value={formData.vacancies} onChange={handleChange} type="number" />
+          </div>
+        </div>
+        <div className="job-description__details2">
+          <div className="job-info2">
+            <span>Result Declaration:</span>
+            <select name="resultDeclaration" value={formData.resultDeclaration} onChange={handleChange}>
+              <option value="Same day">Same day</option>
+              <option value="Within a week">Within a week</option>
+            </select>
+          </div>
+          <div className="job-info2">
+            <span>Date of Joining:</span>
+            <input name="dateOfJoining" value={formData.dateOfJoining} onChange={handleChange} type="date" />
+          </div>
+          <div className="job-info2">
+            <span>Reference:</span>
+            <select name="reference" value={formData.reference} onChange={handleChange}>
               <option value="Self">Self</option>
               <option value="Dr. Vibha Thakur">Dr. Vibha Thakur</option>
               <option value="Ms. Shruti Bansal">Ms. Shruti Bansal</option>
               <option value="Ms. Mansi Shrivastava">Ms. Mansi Shrivastava</option>
               <option value="Ms. Charu Gola">Ms. Charu Gola</option>
-              <option value="Prof. Ravi Kumar">Prof. Ravi Kumar</option>
-              <option value="Other">Other</option>
             </select>
-            {errors.reference && <span className="error-message">{errors.reference}</span>}
           </div>
         </div>
-        
-        <div className="form-section">
-          <h3>Job Details</h3>
-          
-          <div className="form-group">
-            <label htmlFor="profiles">Job Profile *</label>
+      </div>
+      <h2>Job Profile</h2>
+      <input name="profiles" value={formData.profiles} onChange={handleChange} placeholder="e.g. Software Engineer" />
+      <h2>Offer Type</h2>
+      <div className="checkbox-group">
+        {["Full time Employment", "Internship + PPO", "Apprenticeship", "Summer Internship"].map((type) => (
+          <label key={type} className="checkbox-label">
             <input
-              type="text"
-              id="profiles"
-              name="profiles"
-              value={formData.profiles}
-              onChange={handleInputChange}
-              className={errors.profiles ? "error" : ""}
-              placeholder="e.g. Software Engineer, Data Analyst"
+              type="checkbox"
+              value={type}
+              checked={formData.offerType.includes(type)}
+              onChange={handleOfferTypeChange}
             />
-            {errors.profiles && <span className="error-message">{errors.profiles}</span>}
-          </div>
-          
-          <div className="form-group">
-            <label>Offer Type *</label>
-            <div className="checkbox-group">
-              {offerTypes.map((type) => (
-                <div key={type} className="checkbox-item">
-                  <label htmlFor={`offerType-${type}`}>{type}</label>
-                  <input
-                    type="checkbox"
-                    id={`offerType-${type}`}
-                    name="offerType"
-                    value={type}
-                    checked={formData.offerType.includes(type)}
-                    onChange={handleOfferTypeChange}
-                  />
-                </div>
-              ))}
-            </div>
-            {errors.offerType && <span className="error-message">{errors.offerType}</span>}
-          </div>
-          
-          {/* Category Input */}
-          <div className="form-group">
-            <label htmlFor="category">Job Categories *</label>
-            <div className="category-input-container">
-              <div className="category-input-wrapper">
-                <input
-                  type="text"
-                  id="category"
-                  value={categoryInput}
-                  onChange={handleCategoryInputChange}
-                  onKeyDown={handleCategoryInputKeyDown}
-                  placeholder="Add categories (comma-separated)"
-                  className={errors.category ? "error" : ""}
-                />
-            
-              </div>
-              
-              <div className="category-tags">
-                {formData.category.map((category, index) => (
-                  <div key={index} className="category-tag">
-                    {category}
-                    <button 
-                      type="button" 
-                      className="remove-tag"
-                      onClick={() => removeCategory(category)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {errors.category && <span className="error-message">{errors.category}</span>}
-          </div>
-          
-          {/* Skills Input */}
-          <div className="form-group">
-            <label htmlFor="skills">Required Skills *</label>
-            <div className="skills-input-container">
-              <div className="skills-input-wrapper">
-                <input
-                  type="text"
-                  id="skills"
-                  value={skillInput}
-                  onChange={handleSkillInputChange}
-                  onKeyDown={handleSkillInputKeyDown}
-                  placeholder="Add skills (comma-separated)"
-                  className={errors.skills ? "error" : ""}
-                />
-                
-              </div>
-              
-              <div className="skills-list">
-                {formData.skills.map((skill, index) => (
-                  <div key={index} className="skill-tag">
-                    {skill}
-                    <button 
-                      type="button" 
-                      className="remove-tag"
-                      onClick={() => removeSkill(skill)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {errors.skills && <span className="error-message">{errors.skills}</span>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="location">Location *</label>
-            <input
-              type="text"
-              id="location"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              className={errors.location ? "error" : ""}
-            />
-            {errors.location && <span className="error-message">{errors.location}</span>}
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="vacancies">Number of Vacancies *</label>
-              <input
-                type="number"
-                id="vacancies"
-                name="vacancies"
-                value={formData.vacancies}
-                onChange={handleInputChange}
-                className={errors.vacancies ? "error" : ""}
-                min="1"
-              />
-              {errors.vacancies && <span className="error-message">{errors.vacancies}</span>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="ctcOrStipend">CTC/Stipend *</label>
-              <input
-                type="text"
-                id="ctcOrStipend"
-                name="ctcOrStipend"
-                value={formData.ctcOrStipend}
-                onChange={handleInputChange}
-                className={errors.ctcOrStipend ? "error" : ""}
-                placeholder="e.g. 8-10 LPA or 15,000/month"
-              />
-              {errors.ctcOrStipend && <span className="error-message">{errors.ctcOrStipend}</span>}
-            </div>
-          </div>
-          
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="resultDeclaration">Result Declaration *</label>
-              <select
-                id="resultDeclaration"
-                name="resultDeclaration"
-                value={formData.resultDeclaration}
-                onChange={handleInputChange}
-                className={errors.resultDeclaration ? "error" : ""}
-              >
-                <option value="Same day">Same day</option>
-                <option value="Within a week">Within a week</option>
-                <option value="Within two weeks">Within two weeks</option>
-                <option value="Within a month">Within a month</option>
-              </select>
-              {errors.resultDeclaration && <span className="error-message">{errors.resultDeclaration}</span>}
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="dateOfJoining">Date of Joining *</label>
-              <input
-                type="date"
-                id="dateOfJoining"
-                name="dateOfJoining"
-                value={formData.dateOfJoining}
-                onChange={handleInputChange}
-                className={errors.dateOfJoining ? "error" : ""}
-              />
-              {errors.dateOfJoining && <span className="error-message">{errors.dateOfJoining}</span>}
-            </div>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="eligibility">Eligibility Criteria *</label>
-            <textarea
-              id="eligibility"
-              name="eligibility"
-              value={formData.eligibility}
-              onChange={handleInputChange}
-              className={errors.eligibility ? "error" : ""}
-              rows="3"
-            ></textarea>
-            {errors.eligibility && <span className="error-message">{errors.eligibility}</span>}
-          </div>
+            {type}
+          </label>
+        ))}
+      </div>
+      <h2>Skills Required</h2>
+      <div className="skills-input-container">
+        <input
+          value={skillInput}
+          onChange={handleSkillInputChange}
+          onKeyDown={(e) => e.key === "Enter" && handleAddSkills()}
+          placeholder="Type skills and press Enter or comma"
+        />
+        <div className="job-description__skills2">
+          {formData.skills.map((skill, index) => (
+            <span key={index} className="job-description__skill-tag2">
+              {skill}
+              <button type="button" className="remove-skill" onClick={() => removeSkill(skill)}>×</button>
+            </span>
+          ))}
         </div>
-        
-        <div className="form-section">
-          <h3>Job Description</h3>
-          <div className="form-group">
-            <label htmlFor="jobDescription">Job Description *</label>
-            <textarea
-              id="jobDescription"
-              name="jobDescription"
-              value={formData.jobDescription}
-              onChange={handleInputChange}
-              className={errors.jobDescription ? "error" : ""}
-              rows="6"
-            ></textarea>
-            {errors.jobDescription && <span className="error-message">{errors.jobDescription}</span>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="additionalInfo">Additional Information</label>
-            <textarea
-              id="additionalInfo"
-              name="additionalInfo"
-              value={formData.additionalInfo}
-              onChange={handleInputChange}
-              rows="4"
-              placeholder="Any additional information that might be relevant"
-            ></textarea>
-          </div>
-          
-          {formMode === "edit" && (
-            <div className="form-group">
-              <label htmlFor="status">Status</label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className={errors.status ? "error" : ""}
-              >
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-              </select>
-              {errors.status && <span className="error-message">{errors.status}</span>}
-            </div>
-          )}
+      </div>
+      <h2>Categories</h2>
+      <div className="category-input-container">
+        <div className="category-input-wrapper">
+          <input
+            ref={categoryInputRef}
+            value={categoryInput}
+            onChange={handleCategoryInputChange}
+            placeholder="Search or add categories"
+          />
+          <button type="button" className="add-category-btn" onClick={() => addCategory(categoryInput)}>Add</button>
         </div>
-        
-        <div className="form-actions">
-          <button type="button" onClick={onCancel} className="cancel-button">
-            Cancel
-          </button>
-          <button type="submit" className="submit-button">
-            {formMode === "create" ? "Create Job" : "Update Job"}
-          </button>
+        {showCategoryDropdown && filteredCategories.length > 0 && (
+          <div className="category-dropdown" ref={dropdownRef}>
+            {filteredCategories.map((cat, index) => (
+              <div key={index} className="category-dropdown-item" onClick={() => addCategory(cat)}>{cat}</div>
+            ))}
+          </div>
+        )}
+        <div className="job-description__skills2">
+          {formData.category.map((cat, index) => (
+            <span key={index} className="job-description__skill-tag2">
+              {cat}
+              <button type="button" className="remove-skill" onClick={() => removeCategory(cat)}>×</button>
+            </span>
+          ))}
         </div>
-      </form>
+      </div>
+      <h2>Eligibility Criteria</h2>
+      <textarea name="eligibility" value={formData.eligibility} onChange={handleChange} rows="4" />
+      <h2>Job Description</h2>
+      <textarea name="jobDescription" value={formData.jobDescription} onChange={handleChange} rows="6" />
+      <h2>Additional Information</h2>
+      <textarea name="additionalInfo" value={formData.additionalInfo} onChange={handleChange} rows="4" />
+      <div className="job-description__footer">
+        <button type="button" className="job-description__apply-btn" onClick={handleSubmit}>
+          {formMode === "create" ? "Create Job" : "Update Job"}
+        </button>
+        <button type="button" className="job-description__close-details-btn" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
     </div>
   );
 };

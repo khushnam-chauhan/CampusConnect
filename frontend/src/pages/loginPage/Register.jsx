@@ -15,9 +15,16 @@ const Signup = () => {
 
       if (res && res.data) {
         localStorage.setItem("token", res.data.token);
+        localStorage.setItem("role", res.data.role); // Assuming role is in the response
+        
         alert("Signup successful!");
-        window.location.href = "/authContainer";
 
+        // Check the role and redirect accordingly
+        if (res.data.role === "student") {
+          window.location.href = "/student-details"; // Redirect to student details page
+        } else {
+          window.location.href = "/authContainer"; // Redirect to the auth container for other roles
+        }
       } else {
         alert("Unexpected response from server.");
       }

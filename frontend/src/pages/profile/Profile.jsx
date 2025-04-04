@@ -19,10 +19,7 @@ const ProfilePage = () => {
 
   const openResume = () => {
     if (user.resume) {
-      window.open(
-        `${import.meta.env.VITE_BACKEND_URL}${user.resume}`,
-        "_blank"
-      );
+      window.open(`${import.meta.env.VITE_BACKEND_URL}${user.resume}`, "_blank");
     }
   };
 
@@ -32,30 +29,30 @@ const ProfilePage = () => {
     }
   };
 
+  // Helper function to check if Masters details exist
+  const hasMastersDetails = () => {
+    const masters = user.education?.masters;
+    return (
+      masters &&
+      (masters.degree || masters.percentageOrCGPA || masters.passingYear)
+    );
+  };
+
   return (
     <div className="profile-container">
-      {/* Main profile section */}
       <div className="profile-content">
         <div className="profile-basic-info">
           <div className="info-text">
-            <p>
-              <strong>Name:</strong> {user.fullName}
-            </p>
+            <p><strong>Name:</strong> {user.fullName}</p>
             <p>
               <strong>Course:</strong>{" "}
               {user.education?.masters?.degree ||
                 user.education?.graduation?.degree ||
                 "N/A"}
             </p>
-            <p>
-              <strong>College:</strong> {user.school || "N/A"}
-            </p>
-            <p>
-              <strong>Contact no.:</strong> {user.mobileNo || "N/A"}
-            </p>
-            <p>
-              <strong>Email id:</strong> {user.email || "N/A"}
-            </p>
+            <p><strong>College:</strong> {user.school || "N/A"}</p>
+            <p><strong>Contact no.:</strong> {user.mobileNo || "N/A"}</p>
+            <p><strong>Email id:</strong> {user.email || "N/A"}</p>
             <p>
               <strong>Area of interest:</strong> {user.areaOfInterest || "N/A"}
             </p>
@@ -67,9 +64,7 @@ const ProfilePage = () => {
                   src={
                     user.profilePhoto.startsWith("http")
                       ? user.profilePhoto
-                      : `${import.meta.env.VITE_BACKEND_URL}${
-                          user.profilePhoto
-                        }`
+                      : `${import.meta.env.VITE_BACKEND_URL}${user.profilePhoto}`
                   }
                   alt="Profile"
                   className="profile-photo"
@@ -84,7 +79,6 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Resume Section */}
         <div className="section-container">
           <div className="section-header">
             <h2>Resume</h2>
@@ -106,7 +100,6 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Skills Section */}
         <div className="section-container">
           <div className="section-header">
             <h2>Skills</h2>
@@ -126,7 +119,44 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Certifications Section */}
+        <div className="section-container">
+          <div className="section-header">
+            <h2>Education</h2>
+          </div>
+          <div className="section-content education-grid">
+            <div className="education-item">
+              <h3>10th</h3>
+              <p>Percentage/CGPA: {user.education?.tenth?.percentage || "N/A"}</p>
+              <p>Year: {user.education?.tenth?.passingYear || "N/A"}</p>
+            </div>
+            <div className="education-item">
+              <h3>12th</h3>
+              <p>Percentage: {user.education?.twelfth?.percentage || "N/A"}</p>
+              <p>Year: {user.education?.twelfth?.passingYear || "N/A"}</p>
+            </div>
+            <div className="education-item">
+              <h3>Graduation</h3>
+              <p>Degree: {user.education?.graduation?.degree || "N/A"}</p>
+              <p>
+                Percentage/CGPA:{" "}
+                {user.education?.graduation?.percentageOrCGPA || "N/A"}
+              </p>
+              <p>Year: {user.education?.graduation?.passingYear || "N/A"}</p>
+            </div>
+            {hasMastersDetails() && (
+              <div className="education-item">
+                <h3>Masters</h3>
+                <p>Degree: {user.education?.masters?.degree || "N/A"}</p>
+                <p>
+                  Percentage/CGPA:{" "}
+                  {user.education?.masters?.percentageOrCGPA || "N/A"}
+                </p>
+                <p>Year: {user.education?.masters?.passingYear || "N/A"}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="section-container">
           <div className="section-header">
             <h2>Certifications</h2>
@@ -153,67 +183,35 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Experience Section */}
         <div className="section-container">
           <div className="section-header">
             <h2>Experience</h2>
           </div>
           <div className="section-content experience-cards">
-            {user.experience && user.experience.length > 0 ? (
-              user.experience.map((exp, index) => (
-                <div className="experience-card" key={exp._id}>
-                  <h3>Full-stack developer</h3>
-                  <p>{exp.organizationName}</p>
-                  <p>({exp.duration})</p>
-                  {exp.details && (
-                    <p className="experience-details">{exp.details}</p>
-                  )}
-                </div>
-              ))
+            {user.experience &&
+            user.experience.length > 0 &&
+            user.experience.some((exp) => exp.hasExperience || exp.organizationName) ? (
+              user.experience
+                .filter((exp) => exp.hasExperience || exp.organizationName)
+                .map((exp, index) => (
+                  <div className="experience-card" key={exp._id || index}>
+                    <h3>Full-stack developer</h3>
+                    <p>{exp.organizationName || "N/A"}</p>
+                    <p>({exp.duration || "N/A"})</p>
+                    {exp.details && (
+                      <p className="experience-details">{exp.details}</p>
+                    )}
+                  </div>
+                ))
             ) : (
               <div className="experience-card empty">No experience added.</div>
             )}
           </div>
         </div>
 
-        {/* Education Section */}
-        <div className="section-container">
-          <div className="section-header">
-            <h2>Education</h2>
-          </div>
-          <div className="section-content education-grid">
-            <div className="education-item">
-              <h3>10th</h3>
-              <p>Percentage/CGPA: {user.education?.tenth?.percentage || "N/A"}</p>
-              <p>Year: {user.education?.tenth?.passingYear || "N/A"}</p>
-            </div>
-            <div className="education-item">
-              <h3>12th</h3>
-              <p>Percentage: {user.education?.twelfth?.percentage || "N/A"}</p>
-              <p>Year: {user.education?.twelfth?.passingYear || "N/A"}</p>
-            </div>
-            <div className="education-item">
-              <h3>Graduation</h3>
-              <p>Degree: {user.education?.graduation?.degree || "N/A"}</p>
-              <p>
-                Percentage/CGPA:{" "}
-                {user.education?.graduation?.percentageOrCGPA || "N/A"}
-              </p>
-              <p>Year: {user.education?.graduation?.passingYear || "N/A"}</p>
-            </div>
-            <div className="education-item">
-              <h3>Masters</h3>
-              <p>Degree: {user.education?.masters?.degree || "N/A"}</p>
-              <p>
-                Percentage/CGPA:{" "}
-                {user.education?.masters?.percentageOrCGPA || "N/A"}
-              </p>
-              <p>Year: {user.education?.masters?.passingYear || "N/A"}</p>
-            </div>
-          </div>
-        </div>
+        
 
-        {/* Hidden tabs content - kept for functionality */}
+        {/* Hidden tabs content */}
         <div className="hidden-tabs">
           <div className="tabs">
             <button
@@ -245,33 +243,20 @@ const ProfilePage = () => {
           <div className="tab-content" style={{ display: "none" }}>
             {activeTab === "personal" && (
               <div className="tab-panel">
+                <p><strong>Roll No:</strong> {user.rollNo || "N/A"}</p>
+                <p><strong>Mobile No:</strong> {user.mobileNo || "N/A"}</p>
+                <p><strong>WhatsApp No:</strong> {user.whatsappNo || "N/A"}</p>
+                <p><strong>Mail ID:</strong> {user.email || "N/A"}</p>
+                <p><strong>Father's Name:</strong> {user.fatherName || "N/A"}</p>
                 <p>
-                  <strong>Roll No:</strong> {user.rollNo || "N/A"}
-                </p>
-                <p>
-                  <strong>Mobile No:</strong> {user.mobileNo || "N/A"}
-                </p>
-                <p>
-                  <strong>WhatsApp No:</strong> {user.whatsappNo || "N/A"}
-                </p>
-                <p>
-                  <strong>Mail ID:</strong> {user.email || "N/A"}
-                </p>
-                <p>
-                  <strong>Father's Name:</strong> {user.fatherName || "N/A"}
-                </p>
-                <p>
-                  <strong>Father's Contact:</strong>{" "}
-                  {user.fatherNumber || "N/A"}
+                  <strong>Father's Contact:</strong> {user.fatherNumber || "N/A"}
                 </p>
               </div>
             )}
 
             {activeTab === "education" && (
               <div className="tab-panel">
-                <p>
-                  <strong>School:</strong> {user.school || "N/A"}
-                </p>
+                <p><strong>School:</strong> {user.school || "N/A"}</p>
                 <p>
                   <strong>Year of Passing KRMU:</strong>{" "}
                   {user.education?.masters?.passingYear ||
@@ -297,11 +282,13 @@ const ProfilePage = () => {
                   {user.education?.graduation?.degree || "N/A"} (
                   {user.education?.graduation?.percentageOrCGPA || "N/A"})
                 </p>
-                <p>
-                  <strong>Masters:</strong>{" "}
-                  {user.education?.masters?.degree || "N/A"} (
-                  {user.education?.masters?.percentageOrCGPA || "N/A"})
-                </p>
+                {hasMastersDetails() && (
+                  <p>
+                    <strong>Masters:</strong>{" "}
+                    {user.education?.masters?.degree || "N/A"} (
+                    {user.education?.masters?.percentageOrCGPA || "N/A"})
+                  </p>
+                )}
               </div>
             )}
 
@@ -331,15 +318,12 @@ const ProfilePage = () => {
                 {user.certifications?.length > 0 ? (
                   user.certifications.map((cert, index) => (
                     <div key={index} className="certification-item">
-                      <p>
-                        <strong>{cert.name}</strong>
-                      </p>
+                      <p><strong>{cert.name}</strong></p>
                       {cert.image && (
                         <img
                           src={
-                            `${import.meta.env.VITE_BACKEND_URL}${
-                              cert.image
-                            }` || "N/A"
+                            `${import.meta.env.VITE_BACKEND_URL}${cert.image}` ||
+                            "N/A"
                           }
                           alt={cert.name}
                           className="certification-image"

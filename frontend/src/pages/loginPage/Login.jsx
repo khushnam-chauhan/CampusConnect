@@ -54,15 +54,8 @@ const Login = () => {
             console.log("Redirecting to admin panel");
             navigate("/admin-panel");
           } else if (user.role === "student") {
-            // Ensure all required fields are filled for students
-            const requiredFields = ["name", "email", "phone", "resume", "profilePhoto", "course", "yearOfPassing"];
-            const isComplete = requiredFields.every(field => user[field]);
-
-            if (isComplete) {
-              navigate("/dashboard"); // Redirect to dashboard if details are complete
-            } else {
-              navigate("/student-details"); // Redirect to complete profile
-            }
+            // Always redirect students to student-details page
+            navigate("/student-details");
           } else {
             navigate("/dashboard"); // Fallback redirect
           }

@@ -17,7 +17,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   
   // Second check - Do we have authentication?
   if (!isAuthenticated && !hasToken) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/auth-Container" state={{ from: location }} replace />;
   }
   
   // Third check - Use either Redux user or localStorage role
@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       return <Navigate to="/admin-panel" replace />;
     }
     if (userRole === 'student') {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/student-details" replace />;
     }
     return <Navigate to="/" replace />;
   }

@@ -9,7 +9,6 @@ import AuthContainer from "./pages/loginPage/AuthContainer";
 import StudentDetails from "./pages/studentform/StudentDetails";
 import CampusConnectDashboard from "./pages/dashboard/Dashboard";
 import CDCTrainings from "./pages/job-listings/CDCTrainings";
-import Applications from "./pages/job-listings/Applications";
 import Notifications from "./pages/job-listings/Notifications";
 import DashboardLayout from "./layouts/DashboardLayout";
 import CV from "./pages/job-listings/CV";
@@ -18,6 +17,7 @@ import JobListingPage from "./pages/job-listings/JobListings";
 import JobPostForm from "./pages/admin/JobPosting";
 import AdminPanel from "./pages/admin/AdminPanel";
 import ProtectedRoute from './redux/ProtectedRoute';
+import MyApplications from "./pages/job-listings/Applications";
 
 function App() {
   const dispatch = useDispatch();
@@ -38,7 +38,7 @@ function App() {
   // Handle Unauthorized Access Gracefully
   const redirectToDashboard = () => {
     if (!isAuthenticated && !localStorage.getItem("token")) {
-      return <Navigate to="/login" />;
+      return <Navigate to="/auth-Container" />;
     }
     
     // If we have a token but state is loading or user is not loaded yet
@@ -53,14 +53,14 @@ function App() {
         case 'staff':
           return <Navigate to="/admin-panel" />;
         case 'student':
-          return <Navigate to="/dashboard" />;
+          return <Navigate to="/student-details" />;
         default:
-          return <Navigate to="/login" />;
+          return <Navigate to="/auth-Container" />;
       }
     }
     
     // Fallback
-    return <Navigate to="/login" />;
+    return <Navigate to="/auth-Container" />;
   };
   
   return (
@@ -68,9 +68,9 @@ function App() {
       <Routes>
         {/* ✅ Public Routes */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={
+        <Route path="/auth-Container" element={
           isAuthenticated && user && user.role ? 
-            <Navigate to={user.role === 'admin' || user.role === 'staff' ? '/admin-panel' : '/dashboard'} /> 
+            <Navigate to={user.role === 'admin' || user.role === 'staff' ? '/admin-panel' : '/student-details'} /> 
             : 
             <AuthContainer />
         } />
@@ -106,7 +106,7 @@ function App() {
           path="/my-applications" 
           element={
             <ProtectedRoute allowedRoles={['student']}>
-              <DashboardLayout><Applications /></DashboardLayout>
+              <DashboardLayout><MyApplications /></DashboardLayout>
             </ProtectedRoute>
           } 
         />

@@ -58,65 +58,48 @@ const StudentDetails = () => {
   });
 
   useEffect(() => {
-    // Redirect if user is not authenticated
     if (!isAuthenticated && !localStorage.getItem("token")) {
-      navigate("/login");
+      navigate("/auth-Container");
       return;
     }
-    
+
     const fetchUserDetails = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
         const res = await axios.get(`${API_URL}/profile/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const userData = res.data;
 
-        // Handle profile photo URL properly
-        let profilePhotoUrl = null;
-        if (userData.profilePhoto) {
-          // If it's an absolute URL, use it as is
-          if (userData.profilePhoto.startsWith("http")) {
-            profilePhotoUrl = userData.profilePhoto;
-          }
-          // If it starts with a slash, append to API_URL without another slash
-          else if (userData.profilePhoto.startsWith("/")) {
-            profilePhotoUrl = `${API_URL}${userData.profilePhoto}`;
-          }
-          // Otherwise, ensure a slash between API_URL and the path
-          else {
-            profilePhotoUrl = `${API_URL}/${userData.profilePhoto}`;
-          }
-        }
-
-        // Ensure experience is an array with at least one item
-        const experience =
-          Array.isArray(userData.experience) && userData.experience.length > 0
-            ? userData.experience
-            : [
-                {
-                  hasExperience: false,
-                  organizationName: "",
-                  duration: "",
-                  details: "",
-                },
-              ];
+        const userData = res.data || {};
+        const profilePhotoUrl = userData.profilePhoto
+          ? userData.profilePhoto.startsWith("http")
+            ? userData.profilePhoto
+            : `${API_URL}${userData.profilePhoto.startsWith("/") ? "" : "/"}${userData.profilePhoto}`
+          : null;
 
         setFormData((prev) => ({
           ...prev,
           ...userData,
           profilePhoto: profilePhotoUrl,
           education: userData.education || prev.education,
-          experience: experience,
-          hasCertifications: userData.certifications?.length > 0,
+          experience: Array.isArray(userData.experience) && userData.experience.length > 0
+            ? userData.experience
+            : prev.experience,
+          hasCertifications: Array.isArray(userData.certifications) && userData.certifications.length > 0,
           certifications: userData.certifications || [],
           skills: userData.skills || [],
         }));
       } catch (error) {
         console.error("Error fetching profile:", error);
-        toast.error("Failed to load your profile");
+        toast.error(error.message || "Failed to load your profile");
+        if (error.response?.status === 401) {
+          navigate("/auth-Container");
+        }
       } finally {
         setLoading(false);
       }
@@ -129,27 +112,20 @@ const StudentDetails = () => {
     const { name, value, type, checked, files } = e.target;
 
     if (type === "file") {
-      // Handle file inputs
       handleFileInputChange(name, files);
     } else if (type === "checkbox") {
-      // Handle checkbox inputs
       handleCheckboxChange(name, checked);
     } else if (name.startsWith("education")) {
-      // Handle education fields
       handleEducationChange(name, value);
     } else if (name.startsWith("experience")) {
-      // Handle experience fields
       handleExperienceChange(name, value);
     } else if (name.startsWith("certification")) {
-      // Handle certification fields
       handleCertificationChange(name, value);
     } else {
-      // Handle other inputs
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  // Helper function for file inputs
   const handleFileInputChange = (name, files) => {
     if (name.startsWith("certificationImage")) {
       const index = parseInt(name.split("-")[1]);
@@ -167,7 +143,6 @@ const StudentDetails = () => {
     }
   };
 
-  // Helper function for checkbox inputs
   const handleCheckboxChange = (name, checked) => {
     if (name === "hasCertifications") {
       setFormData((prev) => ({
@@ -175,17 +150,18 @@ const StudentDetails = () => {
         hasCertifications: checked,
         certifications: checked ? [...prev.certifications] : [],
       }));
-    } else if (name === "experience.hasExperience") {
+    } else if (name === "hasExperience") {
+      const updatedExperience = [...formData.experience];
+      updatedExperience[0] = { ...updatedExperience[0], hasExperience: checked };
       setFormData((prev) => ({
         ...prev,
-        experience: { ...prev.experience, hasExperience: checked },
+        experience: updatedExperience,
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: checked }));
     }
   };
 
-  // Helper function for education fields
   const handleEducationChange = (name, value) => {
     const keys = name.split(".");
     setFormData((prev) => ({
@@ -197,10 +173,12 @@ const StudentDetails = () => {
     }));
   };
 
-  //  certification fields
   const handleCertificationChange = (name, value) => {
     const [field, index] = name.split("-");
     const updatedCertifications = [...formData.certifications];
+    if (!updatedCertifications[parseInt(index)]) {
+      updatedCertifications[parseInt(index)] = { name: "", image: null };
+    }
     updatedCertifications[parseInt(index)] = {
       ...updatedCertifications[parseInt(index)],
       name: value,
@@ -211,7 +189,6 @@ const StudentDetails = () => {
     }));
   };
 
-  // Skills management
   const addSkill = () => {
     setFormData((prev) => ({
       ...prev,
@@ -229,6 +206,9 @@ const StudentDetails = () => {
 
   const handleSkillChange = (index, value) => {
     const updatedSkills = [...formData.skills];
+    if (!updatedSkills[index]) {
+      updatedSkills[index] = { name: "" };
+    }
     if (updatedSkills[index]._id) {
       updatedSkills[index] = { ...updatedSkills[index], name: value };
     } else {
@@ -240,7 +220,6 @@ const StudentDetails = () => {
     }));
   };
 
-  // Certification management
   const addCertification = () => {
     setFormData((prev) => ({
       ...prev,
@@ -258,23 +237,48 @@ const StudentDetails = () => {
     }));
   };
 
-  // Form submission
+  const validateForm = () => {
+    const mobileRegex = /^\d{10}$/;
+    if (formData.mobileNo && !mobileRegex.test(formData.mobileNo)) {
+      toast.error("Mobile number must be 10 digits");
+      return false;
+    }
+    if (formData.whatsappNo && !mobileRegex.test(formData.whatsappNo)) {
+      toast.error("WhatsApp number must be 10 digits");
+      return false;
+    }
+    if (formData.fatherNumber && !mobileRegex.test(formData.fatherNumber)) {
+      toast.error("Father's number must be 10 digits");
+      return false;
+    }
+    const percentageFields = [
+      { name: "10th percentage", value: formData.education.tenth.percentage },
+      { name: "12th percentage", value: formData.education.twelfth.percentage },
+    ];
+    for (const field of percentageFields) {
+      if (field.value) {
+        const percentage = parseFloat(field.value);
+        if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+          toast.error(`${field.name} must be a number between 0 and 100`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
     if (!validateForm()) {
       return;
     }
-  
     setLoading(true);
     const formDataToSend = new FormData();
-  
-    // Process form data
+
     Object.keys(formData).forEach((key) => {
       if (key === "education") {
         formDataToSend.append(key, JSON.stringify(formData[key]));
       } else if (key === "experience") {
-        // Handle experience array
         formDataToSend.append(key, JSON.stringify(formData[key]));
       } else if (key === "certifications") {
         formDataToSend.append(
@@ -286,8 +290,6 @@ const StudentDetails = () => {
             }))
           )
         );
-  
-        // Append certification images
         formData.certifications.forEach((cert, index) => {
           if (cert.image && typeof cert.image !== "string") {
             formDataToSend.append(`certificationImage-${index}`, cert.image);
@@ -295,48 +297,36 @@ const StudentDetails = () => {
         });
       } else if (key === "skills") {
         formDataToSend.append(key, JSON.stringify(formData[key]));
-      } else if (key === "profilePhoto") {
-        // Only append if it's a File object (new upload)
-        if (formData[key] && formData[key] instanceof File) {
-          formDataToSend.append(key, formData[key]);
-        }
-        // If it's a string URL, we don't need to re-upload it
-      } else if (key === "resume" && formData[key]) {
-        if (formData[key] instanceof File) {
-          formDataToSend.append(key, formData[key]);
-        }
+      } else if (key === "profilePhoto" && formData[key] instanceof File) {
+        formDataToSend.append(key, formData[key]);
+      } else if (key === "resume" && formData[key] instanceof File) {
+        formDataToSend.append(key, formData[key]);
       } else if (key !== "hasCertifications") {
         formDataToSend.append(key, formData[key]);
       }
     });
-  
+
     try {
       const token = localStorage.getItem("token");
+      if (user && user.role) {
+        localStorage.setItem("role", user.role);
+      }
       const response = await axios.post(`${API_URL}/profile/update`, formDataToSend, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-  
       toast.success("Profile updated successfully!");
-      
-      // The key fix: First fetch the user data completely before navigating
-      const userDispatch = await dispatch(fetchUser());
-      
-      // Only navigate once the user data is actually loaded
-      if (userDispatch.type.includes('fulfilled')) {
-        navigate("/dashboard", { replace: true });
-      } else {
-        toast.warning("Profile updated but there was an issue refreshing your session. Please try going to dashboard manually.");
-      }
+      navigate("/dashboard", { replace: true });
+      dispatch(fetchUser());
     } catch (error) {
       console.error("Error updating profile:", error);
       if (error.response?.status === 401) {
-        // Token expired, redirect to login
-        toast.error("Session expired. Please login again.");
+        toast.error("Session expired. Please auth-Container again.");
         localStorage.removeItem("token");
-        navigate("/login");
+        localStorage.removeItem("role");
+        navigate("/auth-Container");
       } else {
         toast.error(error.response?.data?.message || "Error updating profile");
       }
@@ -344,79 +334,31 @@ const StudentDetails = () => {
       setLoading(false);
     }
   };
-  // Form validation
-  const validateForm = () => {
-    const mobileRegex = /^\d{10}$/;
-    if (!mobileRegex.test(formData.mobileNo)) {
-      toast.error("Mobile number must be 10 digits");
-      return false;
+
+  const handleExperienceChange = (index, field, value) => {
+    const updatedExperiences = [...formData.experience];
+    if (index >= updatedExperiences.length) {
+      console.warn(`Index ${index} out of bounds for experience array`);
+      return;
     }
-
-    if (!mobileRegex.test(formData.whatsappNo)) {
-      toast.error("WhatsApp number must be 10 digits");
-      return false;
+    if (!updatedExperiences[index]) {
+      updatedExperiences[index] = {
+        hasExperience: true,
+        organizationName: "",
+        duration: "",
+        details: "",
+      };
     }
-
-    if (!mobileRegex.test(formData.fatherNumber)) {
-      toast.error("Father's number must be 10 digits");
-      return false;
-    }
-
-    // Validate percentages
-    const percentageFields = [
-      { name: "10th percentage", value: formData.education.tenth.percentage },
-      { name: "12th percentage", value: formData.education.twelfth.percentage },
-    ];
-
-    for (const field of percentageFields) {
-      const percentage = parseFloat(field.value);
-      if (isNaN(percentage) || percentage < 0 || percentage > 100) {
-        toast.error(`${field.name} must be a number between 0 and 100`);
-        return false;
-      }
-    }
-
-    return true;
+    updatedExperiences[index] = {
+      ...updatedExperiences[index],
+      [field]: value,
+    };
+    setFormData((prev) => ({
+      ...prev,
+      experience: updatedExperiences,
+    }));
   };
 
-  const prepareFormData = () => {
-    const formDataToSend = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (key === "education" || key === "experience") {
-        formDataToSend.append(key, JSON.stringify(formData[key]));
-      } else if (key === "certifications") {
-        formDataToSend.append(
-          key,
-          JSON.stringify(
-            formData.certifications.map((cert) => ({
-              name: cert.name,
-              image: typeof cert.image === "string" ? cert.image : null,
-            }))
-          )
-        );
-
-        // certification images
-        formData.certifications.forEach((cert, index) => {
-          if (cert.image && typeof cert.image !== "string") {
-            formDataToSend.append(`certificationImage-${index}`, cert.image);
-          }
-        });
-      } else if (key === "skills") {
-        formDataToSend.append(key, JSON.stringify(formData[key]));
-      } else if (
-        (key === "profilePhoto" || key === "resume") &&
-        formData[key]
-      ) {
-        formDataToSend.append(key, formData[key]);
-      } else if (key !== "hasCertifications") {
-        formDataToSend.append(key, formData[key]);
-      }
-    });
-
-    return formDataToSend;
-  };
-
-  // Add a new experience entry
   const addExperience = () => {
     setFormData((prev) => ({
       ...prev,
@@ -432,8 +374,10 @@ const StudentDetails = () => {
     }));
   };
 
-  // Remove an experience entry
   const removeExperience = (index) => {
+    if (formData.experience.length <= 1) {
+      return;
+    }
     const updatedExperiences = [...formData.experience];
     updatedExperiences.splice(index, 1);
     setFormData((prev) => ({
@@ -442,18 +386,6 @@ const StudentDetails = () => {
     }));
   };
 
-  // Handle changes to experience fields
-  const handleExperienceChange = (index, field, value) => {
-    const updatedExperiences = [...formData.experience];
-    updatedExperiences[index] = {
-      ...updatedExperiences[index],
-      [field]: value,
-    };
-    setFormData((prev) => ({
-      ...prev,
-      experience: updatedExperiences,
-    }));
-  };
   return (
     <>
       <Navbar />
@@ -463,45 +395,30 @@ const StudentDetails = () => {
         <form className="student-form" onSubmit={handleSubmit}>
           <div className="form-grid">
             <div className="form-column">
-              <PersonalInfoSection
-                formData={formData}
-                handleChange={handleChange}
-              />
+              <PersonalInfoSection formData={formData} handleChange={handleChange} />
               <div className="form-group">
-              <label>Area of Interest</label>
-              <input
-                type="text"
-                name="areaOfInterest"
-                value={formData.areaOfInterest}
-                onChange={handleChange}
-                required
+                <label>Area of Interest</label>
+                <input
+                  type="text"
+                  name="areaOfInterest"
+                  value={formData.areaOfInterest}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <SkillsSection
+                skills={formData.skills}
+                handleSkillChange={handleSkillChange}
+                addSkill={addSkill}
+                removeSkill={removeSkill}
               />
             </div>
-            <SkillsSection
-              skills={formData.skills}
-              handleSkillChange={handleSkillChange}
-              addSkill={addSkill}
-              removeSkill={removeSkill}
-            />
-
-            </div>
-
             <div className="form-column">
-              <EducationSection
-                formData={formData}
-                handleChange={handleChange}
-              />
-              <SchoolInfoSection
-                formData={formData}
-                handleChange={handleChange}
-              />
+              <EducationSection formData={formData} handleChange={handleChange} />
+              <SchoolInfoSection formData={formData} handleChange={handleChange} />
             </div>
           </div>
-
           <div className="form-section">
-            
-
-            
             <CertificationsSection
               hasCertifications={formData.hasCertifications}
               certifications={formData.certifications}
@@ -509,7 +426,6 @@ const StudentDetails = () => {
               addCertification={addCertification}
               removeCertification={removeCertification}
             />
-
             <div className="form-group">
               <label>Whether ready to work across India?</label>
               <div className="checkbox-container">
@@ -523,7 +439,6 @@ const StudentDetails = () => {
                 />
               </div>
             </div>
-
             <ExperienceSection
               experiences={formData.experience}
               handleChange={handleExperienceChange}
@@ -531,14 +446,8 @@ const StudentDetails = () => {
               removeExperience={removeExperience}
             />
           </div>
-
-          <UploadsSection
-            formData={formData}
-            handleChange={handleChange}
-            API_URL={API_URL}
-          />
-
-          <button onClick={handleSubmit} className="submit-button" disabled={loading}>
+          <UploadsSection formData={formData} handleChange={handleChange} API_URL={API_URL} />
+          <button type="submit" className="submit-button" disabled={loading}>
             {loading ? "Submitting..." : "Submit"}
           </button>
         </form>

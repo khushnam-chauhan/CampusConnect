@@ -95,7 +95,7 @@ function App() {
           } 
         />
         <Route 
-          path="/trainings" 
+          path="/cdc-trainings" 
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <DashboardLayout><CDCTrainings /></DashboardLayout>

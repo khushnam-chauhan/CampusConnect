@@ -19,24 +19,33 @@ exports.getPublicJobs = async (req, res) => {
   try {
     const { profiles, offerType, location, skills, category } = req.query;
     const filters = { status: "approved" };
-    if (profiles) filters.profiles = profiles;
-    if (offerType) filters.offerType = offerType;
-    if (location) filters.location = location;
+
+    // Apply filters if provided
+    if (profiles) {
+      filters.profiles = { $regex: profiles, $options: "i" }; // Case-insensitive
+    }
+    if (offerType) {
+      filters.offerType = { $regex: offerType, $options: "i" }; // Case-insensitive
+    }
+    if (location) {
+      filters.location = { $regex: location, $options: "i" }; // Case-insensitive
+    }
     if (skills) {
-      const skillsArray = skills.split(',').map(skill => new RegExp(skill.trim(), 'i'));
+      const skillsArray = skills.split(",").map((skill) => new RegExp(skill.trim(), "i"));
       filters.skills = { $in: skillsArray };
     }
     if (category) {
-      const categoryArray = category.split(',').map(cat => cat.trim());
+      const categoryArray = category.split(",").map((cat) => cat.trim());
       filters.category = { $in: categoryArray };
     }
+
     const jobs = await Job.find(filters).sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: jobs.length, data: jobs });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Error fetching public jobs:", error.stack); // Log full error for debugging
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
-
 exports.getAllJobsAdmin = async (req, res) => {
   try {
     if (req.user.role !== "admin") {

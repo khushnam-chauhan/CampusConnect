@@ -9,6 +9,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const userRoutes = require("./routes/userRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const trainingRoutes = require("./routes/TrainingRoutes");
+const emailRoutes = require("./routes/emailRoutes"); // Add email routes
 
 const app = express();
 
@@ -29,14 +30,17 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Static paths
 app.use("/api/uploads", express.static(path.join(__dirname, "Uploads")));
 
+// Route mounting
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/admin", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/trainings", trainingRoutes);
+app.use("/api/email", emailRoutes); // Add email routes
 
 connectDb();
 

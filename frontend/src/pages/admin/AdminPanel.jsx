@@ -2,11 +2,17 @@ import React, { useState, useEffect } from "react";
 import "./AdminPanel.css";
 import AdminUserManagement from "./AdminUserMgmt";
 import AdminApplicationManagement from "./AdminApplicationMgmt";
-import AdminBulkEmail from "./AdminEmailBulk";
+import AdminEmailBulk from "./AdminEmailBulk";
 import AdminJobs from "./jobmanager/AdminJobs";
 import AdminTrainings from "./AdminTrainings";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/authSlice";
+import { 
+  fetchUserGroups, 
+  fetchEmailTemplates, 
+  saveTemplate, 
+  sendBulkEmail 
+} from '../../api/emailApi';
 import axios from "axios";
 
 // API base URL
@@ -238,16 +244,7 @@ const AdminPanel = () => {
         expiredJobs: jobsResponse.data.expiredJobs || 0,
       });
 
-      try {
-        const emailResponse = await axios.get(`${API_BASE_URL}/profile/stats/emails`, getAuthConfig());
-        setEmailStats({
-          emailsSent: emailResponse.data.emailsSent || 0,
-          lastCampaign: emailResponse.data.lastCampaign || "-",
-          openRate: emailResponse.data.openRate || "-",
-        });
-      } catch (emailErr) {
-        console.warn("Email stats not available:", emailErr.message);
-      }
+      
 
       try {
         const trainingsResponse = await axios.get(`${API_BASE_URL}/trainings/stats`, getAuthConfig());
@@ -319,13 +316,7 @@ const AdminPanel = () => {
                 <div className="stat-item"><span className="stat-label">Expired Jobs:</span><span className="stat-value">{jobStats.expiredJobs}</span></div>
                 <button className="view-more-button" onClick={() => setActiveSection("jobs")}>Manage Jobs</button>
               </div>
-              <div className="stats-card">
-                <h3>Email System</h3>
-                <div className="stat-item"><span className="stat-label">Emails Sent:</span><span className="stat-value">{emailStats.emailsSent}</span></div>
-                <div className="stat-item"><span className="stat-label">Last Campaign:</span><span className="stat-value">{emailStats.lastCampaign}</span></div>
-                <div className="stat-item"><span className="stat-label">Open Rate:</span><span className="stat-value">{emailStats.openRate}</span></div>
-                <button className="view-more-button" onClick={() => setActiveSection("emails")}>Send Emails</button>
-              </div>
+              
               {(userRole === "staff" || userRole === "admin") && (
                 <div className="stats-card">
                   <h3>Training Management</h3>
@@ -335,17 +326,7 @@ const AdminPanel = () => {
                 </div>
               )}
             </div>
-            <div className="recent-activity">
-              <h3>Recent Activity</h3>
-              <div className="refresh-action">
-                <button onClick={fetchUserRoleAndStats} className="refresh-button">Refresh Dashboard</button>
-              </div>
-              <div className="activity-list">
-                <div className="activity-item"><span className="activity-time">Today, 10:45 AM</span><span className="activity-description">New user registrations</span></div>
-                <div className="activity-item"><span className="activity-time">Today, 09:30 AM</span><span className="activity-description">New job applications submitted</span></div>
-                <div className="activity-item"><span className="activity-time">Yesterday, 4:15 PM</span><span className="activity-description">Bulk email campaign sent</span></div>
-              </div>
-            </div>
+            
           </>
         )}
       </div>
@@ -377,12 +358,12 @@ const AdminPanel = () => {
         );
       case "emails":
         return (
-          <AdminBulkEmail
-            fetchUserGroups={api.fetchUserGroups}
-            fetchEmailTemplates={api.fetchEmailTemplates}
-            saveTemplate={api.saveTemplate}
-            sendBulkEmail={api.sendBulkEmail}
-          />
+          <AdminEmailBulk 
+        fetchUserGroups={fetchUserGroups}
+        fetchEmailTemplates={fetchEmailTemplates}
+        saveTemplate={saveTemplate}
+        sendBulkEmail={sendBulkEmail}
+      />
         );
       case "trainings":
         return (
@@ -443,15 +424,7 @@ const AdminPanel = () => {
             <span>Admin</span><span className="separator">/</span>
             <span>{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}</span>
           </div>
-          <div className="header-actions">
-            <div className="search-box">
-              <input type="text" placeholder="Search..." />
-              <button className="search-button">🔍</button>
-            </div>
-            <button className="notification-button">
-              🔔<span className="notification-badge">3</span>
-            </button>
-          </div>
+         
         </div>
         <div className="admin-body">{renderActiveSection()}</div>
       </div>

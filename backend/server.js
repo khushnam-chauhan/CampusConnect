@@ -12,26 +12,25 @@ const trainingRoutes = require("./routes/TrainingRoutes");
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: [
-    "https://campusconnectkrmu.vercel.app",
-    "https://campusconnect-test.onrender.com",
-    "https://campusconnectkrmu.onrender.com",
-    "http://localhost:5173" // No trailing slash needed
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true 
-}));
+app.use(
+  cors({
+    origin: [
+      "https://campusconnectkrmu.vercel.app",
+      "https://campusconnect-test.onrender.com",
+      "https://campusconnectkrmu.onrender.com",
+      "http://localhost:5173",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static file serving
-app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/uploads", express.static(path.join(__dirname, "Uploads")));
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/admin", userRoutes);
@@ -39,14 +38,11 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/trainings", trainingRoutes);
 
-// Connect DB
 connectDb();
 
-// Root API
 app.get("/", (req, res) => {
   res.send("server connected...");
 });
 
-// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

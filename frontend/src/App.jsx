@@ -18,6 +18,7 @@ import JobPostForm from "./pages/admin/JobPosting";
 import AdminPanel from "./pages/admin/AdminPanel";
 import ProtectedRoute from './redux/ProtectedRoute';
 import MyApplications from "./pages/job-listings/Applications";
+import VerifyEmail from "./pages/loginPage/VerifyEmail";
 
 function App() {
   const dispatch = useDispatch();
@@ -110,6 +111,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route 
           path="/job-listings" 
           element={
